@@ -1,11 +1,128 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Trainer dashboard</title>
-</head>
-<body>
-	<h1> Welcome trainer </h1>
-</body>
-</html>
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<title>Trainer dashboard</title>
+	</head>
+	<body>
+		<h1> Welcome trainer </h1>
+
+		<h1> Classes today </h1>
+		<form id="class_activity_form" action="javascript:void(0);" method="post">
+			<div class="form-group">
+				<select name="class_activity" id="class_activity">
+					<option disabled selected value> -- select an option -- </option>
+				</select><br />				
+			</div>
+		</form>  
+		<div id="children_list"></div>
+
+		<script type="module">
+					//todo -- add children to parent when inserting - remove hardcoded id
+					// update / delete entries
+
+			import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+			import { getFirestore } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+			import { collection, getDocs, doc, getDoc, query, where, addDoc, deleteDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js"; 
+
+			window.onload = async() => { 
+			  // TODO: Add SDKs for Firebase products that you want to use
+			  // https://firebase.google.com/docs/web/setup#available-libraries
+
+				const firebaseConfig = {
+					apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
+					authDomain: "registru-d6b7b.firebaseapp.com",
+					projectId: "registru-d6b7b",
+					storageBucket: "registru-d6b7b.firebasestorage.app",
+					messagingSenderId: "914926288060",
+					appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
+					measurementId: "G-QSDZCKE9MR"
+				};
+
+				const app = initializeApp(firebaseConfig);
+				const db = getFirestore(app);
+
+				const currentDay = new Date().toLocaleString('en-us', {  weekday: 'long' });
+
+				const foundActivityByTrainer = query(collection(db, "class_activity"), where("trainer_id", "==", "tG7dgusxhbPzvCBqFSrE"));
+				const querySnapshot = await getDocs(foundActivityByTrainer);
+				const querySnapshotData = querySnapshot.docs;
+				var classActivityElement = document.getElementById("class_activity");
+
+				for(let classActivityDocument of querySnapshot.docs) {
+					var data = classActivityDocument.data();
+
+					if(data.day == currentDay) {
+						classActivityElement.insertAdjacentHTML( 'beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + ' ' +	data.time + '</option>');
+					}
+				};
+
+
+				document.getElementById("class_activity").addEventListener("change", listChildrenByActivity, false);
+
+
+				async function listChildrenByActivity(){
+					const activityId = document.getElementById("class_activity").value;
+					const foundChildrenByActivity = query(collection(db, "children"), where("class_activities_id", 'array-contains',activityId));
+					const querySnapshotFoundChildren = await getDocs(foundChildrenByActivity);
+
+					for(let childrenDocument of querySnapshotFoundChildren.docs) {
+						var childrenElement = document.getElementById("children_list");
+						var data = childrenDocument.data();
+
+						childrenElement.insertAdjacentHTML( 'beforeend', childrenDocument.id + "<br/>");
+						childrenElement.insertAdjacentHTML( 'beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>" );
+						childrenElement.insertAdjacentHTML( 'beforeend', "age:" + data.age + "<br/>" );
+						childrenElement.insertAdjacentHTML( 'beforeend', "gender:" + data.gender + "<br/>");
+						childrenElement.insertAdjacentHTML( 'beforeend', 'isPresent?: <span id=' + activityId + '_present class="material-icons">check</span> <span id=' + activityId + '_absent class="material-icons">close</span><br/>');
+
+						childrenElement.insertAdjacentHTML( 'beforeend', "---------------------- </br>");
+
+						var classAttendanceSpanPresent = document.getElementById(activityId + "_present");
+						classAttendanceSpanPresent.addEventListener("click", addClassAttendance, false);
+						classAttendanceSpanPresent.activityId = activityId;
+						classAttendanceSpanPresent.childrenId = childrenDocument.id;
+						classAttendanceSpanPresent.isPresent = true;
+						classAttendanceSpanPresent.date = toLocalISOString(new Date());
+
+						var classAttendanceSpanPresent = document.getElementById(activityId + "_absent");
+						classAttendanceSpanPresent.addEventListener("click", addClassAttendance, false);
+						classAttendanceSpanPresent.activityId = activityId;
+						classAttendanceSpanPresent.childrenId = childrenDocument.id;
+						classAttendanceSpanPresent.isPresent = false;
+						classAttendanceSpanPresent.date = toLocalISOString(new Date());
+					};
+				}
+
+				async function addClassAttendance(evt) {
+					const activityId = evt.currentTarget.activityId;
+					const childrenId = evt.currentTarget.childrenId;
+					const isPresent = evt.currentTarget.isPresent;
+					const date = evt.currentTarget.date;
+
+					const docRef = await addDoc(collection(db, "attendance"), {
+						children_id: childrenId,
+						class_activity_id: activityId,
+						is_present: isPresent,
+						date: date,
+						created_at: serverTimestamp()
+					});
+				}
+
+				function toLocalISOString(date) {
+					const localDate = new Date(date - date.getTimezoneOffset() * 60000);
+					localDate.setSeconds(null);
+					localDate.setMilliseconds(null);
+					return localDate.toISOString().slice(0, -1);
+				}
+			}
+		</script>
+	</body>
+	</html>
+
+
+
+	1, 8, 15, 22, 29, 6, 13, 20
+	f, f, f,   t, f,  f, f,  t

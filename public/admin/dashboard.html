@@ -61,51 +61,24 @@
 			<form id="class_activity_form" action="javascript:void(0);" method="post">
 				<div class="form-group">
 					<label>Name</label>
-					<input type="text" id="class_activity_name"></br>
-					<label>Attendance day </label></br>
+					<input type="text" id="class_activity_name"><br/>
+					<label>Attendance day </label>
+					<select name="class_activity_attendance_day" id="class_activity_attendance_day">
+						<option value="Monday">Monday</option>
+						<option value="Tuesday">Tuesday</option>
+						<option value="Wedneday">Wednesday</option>
+						<option value="Thursday">Thursday</option>
+						<option value="Friday">Friday</option>
+						<option value="Saturday">Saturday</option>
+						<option value="Sunday">Sunday</option>
+					</select><br />
+					<label>Lesson per billing cycle</label>
+					<input type="number" id="class_activity_lesson_billing_cycle" min="1" max="60"></br>
 
-					<input type="checkbox" id="class_activity_attendance_day_monday" name="class_activity_attendance_day" value="Monday">
-					<label for="class_activity_attendance_day_monday">Monday</label>
-					<label for="class_activity_attendance_time_monday">Time:</label>
-					<input	id="class_activity_attendance_time_monday" type="time" name="class_activity_attendance_time" min="07:00" max="21:00" />
-					<select name="activity_trainer" id="activity_trainer_monday"></select></br />
-
-					<input type="checkbox" id="class_activity_attendance_day_tuesday" name="class_activity_attendance_day" value="Tuesday">
-					<label for="class_activity_attendance_day_tuesday">Tuesday</label>
-					<label for="class_activity_attendance_time_tuesday">Time:</label>
-					<input	id="class_activity_attendance_time_tuesday" type="time" name="class_activity_attendance_time" min="07:00" max="21:00" />
-					<select name="activity_trainer" id="activity_trainer_tuesday"></select></br />
-
-					<input type="checkbox" id="class_activity_attendance_day_wednesday" name="class_activity_attendance_day" value="Wednesday">
-					<label for="class_activity_attendance_day_wednesday">Wednesday</label>
-					<label for="class_activity_attendance_time_wednesday">Time:</label>
-					<input	id="class_activity_attendance_time_wednesday" type="time" name="class_activity_attendance_time" min="07:00" max="21:00" />
-					<select name="activity_trainer" id="activity_trainer_wednesday"></select></br />
-
-					<input type="checkbox" id="class_activity_attendance_day_thursday" name="class_activity_attendance_day" value="Thursday">
-					<label for="class_activity_attendance_day_thursday">Thursday</label>
-					<label for="class_activity_attendance_time_thursday">Time:</label>
-					<input	id="class_activity_attendance_time_thursday" type="time" name="class_activity_attendance_time" min="07:00" max="21:00" />
-					<select name="activity_trainer" id="activity_trainer_thursday"></select></br />
-
-					<input type="checkbox" id="class_activity_attendance_day_friday" name="class_activity_attendance_day" value="Friday">
-					<label for="class_activity_attendance_day_friday">Friday</label>
-					<label for="class_activity_attendance_time_friday">Time:</label>
-					<input	id="class_activity_attendance_time_friday" type="time" name="class_activity_attendance_time" min="07:00" max="21:00" />
-					<select name="activity_trainer" id="activity_trainer_friday"></select></br />
-
-					<input type="checkbox" id="class_activity_attendance_day_saturday" name="class_activity_attendance_day" value="Saturday">
-					<label for="class_activity_attendance_day_saturday">Saturday</label>
-					<label for="class_activity_attendance_time_saturday">Time:</label>
-					<input	id="class_activity_attendance_time_saturday" type="time" name="class_activity_attendance_time" min="07:00" max="21:00" />
-					<select name="activity_trainer" id="activity_trainer_saturday"></select></br />
-
-					<input type="checkbox" id="class_activity_attendance_day_sunday" name="class_activity_attendance_day" value="Sunday">
-					<label for="class_activity_attendance_day_sunday">Sunday</label>
-					<label for="class_activity_attendance_time_sunday">Time:</label>
-					<input	id="class_activity_attendance_time_sunday" type="time" name="class_activity_attendance_time" min="07:00" max="21:00" />
-					<select name="activity_trainer" id="activity_trainer_sunday"></select></br />
-
+					<label for="class_activity_attendance_time">Time:</label>
+					<input id="class_activity_attendance_time" type="time" name="class_activity_attendance_time" min="07:00" max="21:00" />
+					<select name="activity_trainer" id="activity_trainer"></select></br />
+					
 					<input type="submit" value="Add class activity" id="submit_class_activity">
 				</div>
 			</form>  
@@ -147,19 +120,20 @@
 				
 				import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
 				import { getFirestore } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
-				import { collection, getDocs, doc, getDoc, query, where, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js"; 
+				import { collection, getDocs, doc, getDoc, query, where, addDoc, deleteDoc, serverTimestamp  } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js"; 
 
 				window.onload = async() => { 
 		  // TODO: Add SDKs for Firebase products that you want to use
 		  // https://firebase.google.com/docs/web/setup#available-libraries
 
 					const firebaseConfig = {
-						apiKey: "AIzaSyDAeTuoOcsllzvcsgNndgiOJbmfA_m7Aw4",
-						authDomain: "rafaregistru.firebaseapp.com",
-						projectId: "rafaregistru",
-						storageBucket: "rafaregistru.firebasestorage.app",
-						messagingSenderId: "85158895308",
-						appId: "1:85158895308:web:d8667a0f769bef596a2c69"
+						apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
+						authDomain: "registru-d6b7b.firebaseapp.com",
+						projectId: "registru-d6b7b",
+						storageBucket: "registru-d6b7b.firebasestorage.app",
+						messagingSenderId: "914926288060",
+						appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
+						measurementId: "G-QSDZCKE9MR"
 					};
 
 
@@ -172,15 +146,11 @@
 					for(let childrenDocument of querySnapshotChildren.docs) {
 						var childrenElement = document.getElementById("children");
 						var data = childrenDocument.data();
-						const trainerDocument = await getDoc(doc(db, "trainers", data.trainer_id));
-						var trainerData = trainerDocument.data();
 
 						childrenElement.insertAdjacentHTML( 'beforeend', childrenDocument.id + "<br/>");
 						childrenElement.insertAdjacentHTML( 'beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>" );
 						childrenElement.insertAdjacentHTML( 'beforeend', "age:" + data.age + "<br/>" );
 						childrenElement.insertAdjacentHTML( 'beforeend', "gender:" + data.gender + "<br/>");
-						childrenElement.insertAdjacentHTML( 'beforeend', "trainerId:" + data.trainer_id  + " name:" + trainerData.first_name +  " " + trainerData.last_name + "<br/>");
-
 
 						childrenElement.insertAdjacentHTML( 'beforeend', "---------------------- </br>");
 					};
@@ -219,17 +189,13 @@
 						classActivityElement.insertAdjacentHTML( 'beforeend', classActivityDocument.id + "<br/>");
 						classActivityElement.insertAdjacentHTML( 'beforeend', "name:" + data.name + "<br/>" );
 
-						var schedule = data.schedule;
+						const trainerDocument = await getDoc(doc(db, "trainers", data.trainer_id));
+						var trainerData = trainerDocument.data();
 
-						for (let activity of schedule) {
-							const trainerDocument = await getDoc(doc(db, "trainers", activity.trainer_id));
-							var trainerData = trainerDocument.data();
+						classActivityElement.insertAdjacentHTML( 'beforeend', "trainerId:" + data.trainer_id  + " name:" + trainerData.first_name +  " " + trainerData.last_name + "<br/>");
+						classActivityElement.insertAdjacentHTML( 'beforeend', "day:" + data.day + "<br/>");
+						classActivityElement.insertAdjacentHTML( 'beforeend', "time:" + data.time + "<br/>");
 
-							classActivityElement.insertAdjacentHTML( 'beforeend', "trainerId:" + activity.trainer_id  + " name:" + trainerData.first_name +  " " + trainerData.last_name + "<br/>");
-							classActivityElement.insertAdjacentHTML( 'beforeend', "day:" + activity.day + "<br/>");
-							classActivityElement.insertAdjacentHTML( 'beforeend', "time:" + activity.time + "<br/>");
-							
-						}
 
 						classActivityElement.insertAdjacentHTML( 'beforeend', "---------------------- <br/>");
 					};
@@ -251,7 +217,7 @@
 						classAttendanceElement.insertAdjacentHTML( 'beforeend', "chlidrenId:" + data.children_id  + " name:" + childrenData.first_name +  " " + childrenData.last_name + "<br/>");
 						classAttendanceElement.insertAdjacentHTML( 'beforeend', "classActivityId:" + data.class_activity_id  + " name:" + classActivityData.name + "<br/>");
 
-						classAttendanceElement.insertAdjacentHTML( 'beforeend', '<span id=' + classAttendanceDocument.id + ' class="material-icons">home</span>' + "<br/>");
+						classAttendanceElement.insertAdjacentHTML( 'beforeend', '<span id=' + classAttendanceDocument.id + ' class="material-icons">delete</span>' + "<br/>");
 
 						var classAttendanceSpan = document.getElementById(classAttendanceDocument.id);
 						classAttendanceSpan.addEventListener("click", deleteClassAttendance, false);
@@ -269,7 +235,8 @@
 						const docRef = await addDoc(collection(db, "parents"), {
 							children: ["W6fI4gTbBJl0YAxeY8di"],
 							first_name: firstNameInput.value,
-							last_name: lastNameInput.value
+							last_name: lastNameInput.value,
+							created_at: serverTimestamp()
 						});
 
 						document.getElementById("test").innerHTML = "Added parent with id=" + docRef.id
@@ -286,7 +253,8 @@
 
 						const docRef = await addDoc(collection(db, "trainers"), {
 							first_name: firstNameInput.value,
-							last_name: lastNameInput.value
+							last_name: lastNameInput.value,
+							created_at: serverTimestamp()
 						});
 
 						document.getElementById("trainer_title").innerHTML = "Added trainer with id=" + docRef.id
@@ -314,8 +282,9 @@
 							first_name: firstNameInput.value,
 							last_name: lastNameInput.value,
 							gender: genderInput.value,
-							age: ageInput.value,
-							class_activities_id : checkedClassActivities
+							age: parseInt(ageInput.value),
+							class_activities_id : checkedClassActivities,
+							created_at: serverTimestamp()
 						});
 
 						document.getElementById("children_title").innerHTML = "Added children with id=" + docRef.id
@@ -332,38 +301,22 @@
 
 					async function addClassActivity() {
 						const nameInput = document.querySelector("#class_activity_name");
-						var attendanceCheckboxes = document.querySelectorAll('input[name=class_activity_attendance_day]');
-						var attendanceTimes = document.querySelectorAll('input[name=class_activity_attendance_time]');
-						var attendanceTrainers = document.getElementsByName("activity_trainer");
-
-						const checkedScheduleDays = [];
-						for (let i = 0; i < attendanceTimes.length; i++) {
-							if (attendanceCheckboxes[i].checked) {
-								var temp = {};
-								temp["day"] =attendanceCheckboxes[i].value;
-								temp["time"] = attendanceTimes[i].value;
-								temp["trainer_id"] = attendanceTrainers[i].value;
-								checkedScheduleDays.push(temp);
-
-							}
-						}
+						const timeInput = document.querySelector('#class_activity_attendance_time');
+						const attendanceTrainers = document.querySelector("#activity_trainer");
+						const dayInput =  document.querySelector("#class_activity_attendance_day");
+						const lessonPerBillingCycle = document.querySelector("#class_activity_lesson_billing_cycle");
 
 						const docRef = await addDoc(collection(db, "class_activity"), {
 							name: nameInput.value,
-							schedule : checkedScheduleDays
+							day : dayInput.value,
+							time: timeInput.value,
+							trainer_id: attendanceTrainers.value,
+							lesson_per_billing_cycle : parseInt(lessonPerBillingCycle.value),
+							created_at: serverTimestamp()
 						});
 
 						document.getElementById("class_activity_title").innerHTML = "Added class activity with id=" + docRef.id
 						nameInput.value = "";
-						for (let checkbox of attendanceCheckboxes) {
-							checkbox.checked = false;
-						}
-						for (let time of attendanceTimes) {
-							time.value = "";
-						}
-						for (let trainer of attendanceTrainers) {
-							trainer.value = "";
-						}
 					}
 
 
@@ -427,6 +380,7 @@
 							class_activity_id: attendanceId.value,
 							is_present: isPresent.checked,
 							date: dateTimeInput.value,
+							created_at: serverTimestamp()
 						});
 
 						document.getElementById("class_attendance_title").innerHTML = "Added class attendance with id=" + docRef.id
@@ -438,7 +392,6 @@
 
 					async function deleteClassAttendance(evt) {
 						var attendanceId = evt.currentTarget.attendanceId;
-						console.log("got attendanceId + " + evt.currentTarget.attendanceId);
 						await deleteDoc(doc(db, "attendance", attendanceId));
 						document.getElementById("attendances_list_title").innerHTML = "Removed class attendance with id=" + attendanceId;
 
