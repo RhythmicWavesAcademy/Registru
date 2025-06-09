@@ -94,6 +94,7 @@
 					<input type="radio" id="children_attendance_present" name="children_attendance_present" value="true"><br />
 					<label for="children_attendance_datetime">Attendance date</label>
 					<input type="datetime-local" id="children_attendance_datetime" name="children_attendance_datetime"><br />
+					<input type="radio" id="children_attendance_should_pay" name="children_attendance_should_pay" value="true"><br />
 					
 					<input type="submit" value="Add class attendance" id="submit_class_attendance">
 				</div>
@@ -212,7 +213,7 @@
 						var classActivityData = classActivityDocument.data();
 
 						classAttendanceElement.insertAdjacentHTML( 'beforeend', classAttendanceDocument.id + "<br/>");
-						classAttendanceElement.insertAdjacentHTML( 'beforeend', "date:" + data.date + "<br/>" );
+						classAttendanceElement.insertAdjacentHTML( 'beforeend', "date:" + data.present_at + "<br/>" );
 						classAttendanceElement.insertAdjacentHTML( 'beforeend', "isPresent?:" + data.is_present + "<br/>" );
 						classAttendanceElement.insertAdjacentHTML( 'beforeend', "chlidrenId:" + data.children_id  + " name:" + childrenData.first_name +  " " + childrenData.last_name + "<br/>");
 						classAttendanceElement.insertAdjacentHTML( 'beforeend', "classActivityId:" + data.class_activity_id  + " name:" + classActivityData.name + "<br/>");
@@ -373,13 +374,15 @@
 						const childrenId = document.querySelector("#children_attendance_children_id");
 						const attendanceId = document.querySelector("#children_attendance_class_activity");
 						const isPresent =  document.querySelector("#children_attendance_present");
+						const shouldPay = document.querySelector("#children_attendance_should_pay");
 						const dateTimeInput =  document.querySelector("#children_attendance_datetime"); 
 
 						const docRef = await addDoc(collection(db, "attendance"), {
 							children_id: childrenId.value,
 							class_activity_id: attendanceId.value,
 							is_present: isPresent.checked,
-							date: dateTimeInput.value,
+							should_pay: shouldPay.checked,
+							present_at: dateTimeInput.value,
 							created_at: serverTimestamp()
 						});
 
@@ -387,6 +390,7 @@
 						childrenId.value = "";
 						attendanceId.value = "";
 						isPresent.checked = false;
+						shouldPay.checked = false;
 						dateTimeInput.value = toLocalISOString(new Date());
 					}
 

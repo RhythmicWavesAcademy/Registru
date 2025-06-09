@@ -9,7 +9,7 @@
 	<body>
 		<h1> Welcome trainer </h1>
 
-		<h1> Classes today </h1>
+		<h1 id="classes_today_title"> Classes today </h1>
 		<form id="class_activity_form" action="javascript:void(0);" method="post">
 			<div class="form-group">
 				<select name="class_activity" id="class_activity">
@@ -25,7 +25,7 @@
 
 			import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
 			import { getFirestore } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
-			import { collection, getDocs, doc, getDoc, query, where, addDoc, deleteDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js"; 
+			import { collection, getDocs, doc, getDoc, query, where, addDoc, deleteDoc, serverTimestamp, orderBy, limit, updateDoc  } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js"; 
 
 			window.onload = async() => { 
 			  // TODO: Add SDKs for Firebase products that you want to use
@@ -59,11 +59,9 @@
 					}
 				};
 
-
 				document.getElementById("class_activity").addEventListener("change", listChildrenByActivity, false);
 
-
-				async function listChildrenByActivity(){
+				async function listChildrenByActivity() {
 					const activityId = document.getElementById("class_activity").value;
 					const foundChildrenByActivity = query(collection(db, "children"), where("class_activities_id", 'array-contains',activityId));
 					const querySnapshotFoundChildren = await getDocs(foundChildrenByActivity);
@@ -77,6 +75,31 @@
 						childrenElement.insertAdjacentHTML( 'beforeend', "age:" + data.age + "<br/>" );
 						childrenElement.insertAdjacentHTML( 'beforeend', "gender:" + data.gender + "<br/>");
 						childrenElement.insertAdjacentHTML( 'beforeend', 'isPresent?: <span id=' + activityId + '_present class="material-icons">check</span> <span id=' + activityId + '_absent class="material-icons">close</span><br/>');
+
+						// const querySnapshotClassActivity = await getDoc(doc(db, 'class_activity', activityId));
+						// const querySnapshotClassActivityData = querySnapshotClassActivity.data();
+						// const lessonsPerBillingCycle = querySnapshotClassActivityData.lesson_per_billing_cycle;
+
+						// const lastAttendanceByBillingCycleForChildren = query(collection(db, "attendance"), orderBy("created_at", "desc"), limit(lessonsPerBillingCycle - 1), where("children_id", "==", childrenDocument.id));
+						// const querySnapshotLastAttendanceByBillingCycleForChildren = await getDocs(lastAttendanceByBillingCycleForChildren);
+						// const querySnapshotLastAttendanceByBillingCycleForChildrenDocs = querySnapshotLastAttendanceByBillingCycleForChildren.docs.map(doc => doc.data());
+
+						// var billingCycleEnded = false;
+						// if (querySnapshotLastAttendanceByBillingCycleForChildrenDocs.length == lessonsPerBillingCycle - 1) {
+						// 	billingCycleEnded = querySnapshotLastAttendanceByBillingCycleForChildrenDocs.every(item => item.should_pay == false);
+						// }
+
+
+						// if (billingCycleEnded) {
+						// 	childrenElement.insertAdjacentHTML( 'beforeend', 'should pay?: <span id=' + activityId + '_pay class="material-icons">check</span><br />');
+
+						// 	var classAttendanceSpanPay = document.getElementById(activityId + "_pay");
+						// 	classAttendanceSpanPay.addEventListener("click", updatePaidMembership, false);
+						// 	classAttendanceSpanPay.activityId = activityId;
+						// 	classAttendanceSpanPay.childrenId = childrenDocument.id;
+						// } else {
+						// 	childrenElement.insertAdjacentHTML( 'beforeend', 'should pay?: <span id=' + activityId + '_pay class="material-icons">close</span><br />');
+						// }
 
 						childrenElement.insertAdjacentHTML( 'beforeend', "---------------------- </br>");
 
@@ -106,23 +129,72 @@
 						children_id: childrenId,
 						class_activity_id: activityId,
 						is_present: isPresent,
-						date: date,
-						created_at: serverTimestamp()
+						present_at: date,
+						created_at: serverTimestamp(),
+						should_pay: false
 					});
+
+					if (isPresent) {
+						document.getElementById("classes_today_title").innerHTML = "Children id is present " + childrenId + " attendanceId: " + docRef.id;
+					} else {
+						document.getElementById("classes_today_title").innerHTML = "Children id is not present " + childrenId + " attendanceId: " + docRef.id;
+					}
+
+					const querySnapshotClassActivity = await getDoc(doc(db, 'class_activity', activityId));
+					const querySnapshotClassActivityData = querySnapshotClassActivity.data();
+					const lessonsPerBillingCycle = querySnapshotClassActivityData.lesson_per_billing_cycle;
+
+					const lastAttendanceByBillingCycleForChildren = query(collection(db, "attendance"), orderBy("created_at", "desc"), limit(lessonsPerBillingCycle - 1), where("children_id", "==", childrenId));
+					const querySnapshotLastAttendanceByBillingCycleForChildren = await getDocs(lastAttendanceByBillingCycleForChildren);
+					const querySnapshotLastAttendanceByBillingCycleForChildrenDocs = querySnapshotLastAttendanceByBillingCycleForChildren.docs.map(doc => doc.data());
+
+					var billingCycleEnded = false;
+					if (querySnapshotLastAttendanceByBillingCycleForChildrenDocs.length == lessonsPerBillingCycle - 1) {
+						billingCycleEnded = querySnapshotLastAttendanceByBillingCycleForChildrenDocs.every(item => item.should_pay == false);
+					}
+
+					var childrenElement = document.getElementById("children_list");
+
+					let currentQuantityRange = document.getElementById(activityId + "_container");
+					if (currentQuantityRange) currentQuantityRange.remove();
+
+						if (billingCycleEnded) {
+							childrenElement.insertAdjacentHTML( 'beforeend', '<div id=' + activityId +'_container>should pay?: <span id=' + activityId + '_pay class="material-icons">check</span><br /></div>');
+
+							var classAttendanceSpanPay = document.getElementById(activityId + "_pay");
+							classAttendanceSpanPay.addEventListener("click", updatePaidMembership, false);
+							classAttendanceSpanPay.activityId = activityId;
+							classAttendanceSpanPay.childrenId = childrenId;
+						} else {
+							childrenElement.insertAdjacentHTML( 'beforeend', '<div id=' + activityId +'_container>should pay?: <span id=' + activityId + '_pay class="material-icons">close</span><br /></div>');
+						}
+					}
+
+					async function updatePaidMembership(evt) {
+						const activityId = evt.currentTarget.activityId;
+						const childrenId = evt.currentTarget.childrenId;
+
+						const lastAttendanceForChildrenQuery = query(collection(db, "attendance"), orderBy("created_at", "desc"), limit(1), where("children_id", "==", childrenId), where("class_activity_id", "==", activityId));
+
+						const querySnapshotLastAttendanceForChildren = await getDocs(lastAttendanceForChildrenQuery);
+						const lastAttendanceByChildrenDocument = querySnapshotLastAttendanceForChildren.docs[0];
+
+						const docRef = doc(db, "attendance", lastAttendanceByChildrenDocument.id);
+						await updateDoc(docRef, {
+							should_pay: true,
+							membership_paid_date: serverTimestamp()
+						});
+
+						document.getElementById("classes_today_title").innerHTML = "Membership paid for children id" + childrenId + " attendanceId: " + lastAttendanceByChildrenDocument.id;
+					}
+
+					function toLocalISOString(date) {
+						const localDate = new Date(date - date.getTimezoneOffset() * 60000);
+						localDate.setSeconds(null);
+						localDate.setMilliseconds(null);
+						return localDate.toISOString().slice(0, -1);
+					}
 				}
-
-				function toLocalISOString(date) {
-					const localDate = new Date(date - date.getTimezoneOffset() * 60000);
-					localDate.setSeconds(null);
-					localDate.setMilliseconds(null);
-					return localDate.toISOString().slice(0, -1);
-				}
-			}
-		</script>
-	</body>
-	</html>
-
-
-
-	1, 8, 15, 22, 29, 6, 13, 20
-	f, f, f,   t, f,  f, f,  t
+			</script>
+		</body>
+		</html>
