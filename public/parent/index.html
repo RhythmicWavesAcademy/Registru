@@ -1,11 +1,75 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Parent dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Parent dashboard</title>
 </head>
 <body>
-	<h1> Welcome parent </h1>
+<h1> Welcome parent </h1>
+<h1 id="reset_password"> Click here to reset password</h1>
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        collection,
+        getDocs,
+        doc,
+        getDoc,
+        query,
+        where,
+        addDoc,
+        deleteDoc,
+        serverTimestamp,
+        orderBy,
+        limit,
+        updateDoc
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        getAuth,
+        isSignInWithEmailLink,
+        signInWithEmailLink,
+        getAdditionalUserInfo,
+        sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    window.onload = async () => {
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
+            authDomain: "registru-d6b7b.firebaseapp.com",
+            projectId: "registru-d6b7b",
+            storageBucket: "registru-d6b7b.firebasestorage.app",
+            messagingSenderId: "914926288060",
+            appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
+            measurementId: "G-QSDZCKE9MR"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+// Returning the respected value associated
+// with the provided key
+        const auth = getAuth();
+        auth.languageCode = 'ro';
+        const userEmail = sessionStorage.getItem("email");
+
+        document.getElementById("reset_password").addEventListener("click", resetPassword, false);
+
+        async function resetPassword() {
+            sendPasswordResetEmail(auth, userEmail)
+                .then(() => {
+                    document.getElementById("reset_password").innerHTML = "Password reset sent";
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    // ..
+                });
+        }
+    }
+</script>
 </body>
 </html>

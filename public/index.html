@@ -1,176 +1,215 @@
-  <!DOCTYPE html>
-  <html>
-  <head>
+<!DOCTYPE html>
+<html>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Test</title>
-  </head>
-  <body>
-    <a href="admin/dashboard.html">To admin</a>
+</head>
+<body>
+<a href="admin/dashboard.html">To admin</a>
 
-    <h1 id="register_title"> Register </h1>
-    <form id="register_form" action="javascript:void(0);" method="post">
-      <div class="form-group">
+<h1 id="register_title"> Register </h1>
+<h1 id="email_verification"></h1>
+<h1 id="password_reset"></h1>
+<form id="register_form" action="javascript:void(0);" method="post">
+    <div class="form-group">
         <label>Email</label>
         <input type="text" id="register_email"></br>
-        <label>Password</label>
-        <input type="text" id="register_password"></br>
-        <label for="user_types">User type</label>
-        <select name="register_user_types" id="register_user_types"></select><br />
+        <!-- <label>Password</label> -->
+        <!-- <input type="text" id="register_password"></br> -->
+        <!-- <label for="user_types">User type</label> -->
+        <!-- <select name="register_user_types" id="register_user_types"></select><br /> -->
 
         <input type="submit" value="Login" id="submit_register">
-      </div>
-    </form>  
+    </div>
+</form>
 
-    <h1 id="login_title"> Login </h1>
-    <form id="login_form" action="javascript:void(0);" method="post">
-      <div class="form-group">
+<h1 id="login_title"> Login </h1>
+<form id="login_form" action="javascript:void(0);" method="post">
+    <div class="form-group">
         <label>Email</label>
         <input type="text" id="login_email"></br>
         <label>Password</label>
         <input type="text" id="login_password"></br>
 
         <input type="submit" value="Login" id="submit_login">
-      </div>
-    </form>  
+    </div>
+</form>
 
-    <script type="module">
-  // Import the functions you need from the SDKs you need
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-      import { getFirestore } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
-      import { collection, getDocs, doc, getDoc, addDoc,  query, where } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js"; 
-      import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        collection,
+        getDocs,
+        doc,
+        getDoc,
+        addDoc,
+        query,
+        where
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        sendEmailVerification,
+        sendSignInLinkToEmail,
+        getAdditionalUserInfo,
+        sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
-      window.onload = async() => { 
+    window.onload = async () => {
 
-       const firebaseConfig = {
-        apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
-        authDomain: "registru-d6b7b.firebaseapp.com",
-        projectId: "registru-d6b7b",
-        storageBucket: "registru-d6b7b.firebasestorage.app",
-        messagingSenderId: "914926288060",
-        appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
-        measurementId: "G-QSDZCKE9MR"
-      };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
+            authDomain: "registru-d6b7b.firebaseapp.com",
+            projectId: "registru-d6b7b",
+            storageBucket: "registru-d6b7b.firebasestorage.app",
+            messagingSenderId: "914926288060",
+            appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
+            measurementId: "G-QSDZCKE9MR"
+        };
 
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-      const querySnapshotUserTypes = await getDocs(collection(db, "user_types"));
-      var userType = document.getElementById("register_user_types");
-      for(let userTypeDocument of querySnapshotUserTypes.docs) {
-        var data = userTypeDocument.data();
+        const querySnapshotUserTypes = await getDocs(collection(db, "user_types"));
+        var userType = document.getElementById("register_user_types");
+        for (let userTypeDocument of querySnapshotUserTypes.docs) {
+            var data = userTypeDocument.data();
 
-        if(data.name == "admin") {
-          continue;
+            if (data.name == "admin") {
+                continue;
+            }
+
+            userType.insertAdjacentHTML('beforeend', '<option value=' + userTypeDocument.id + '>' + data.name + '</option>');
         }
 
-        userType.insertAdjacentHTML( 'beforeend', '<option value=' + userTypeDocument.id + '>' + data.name + '</option>');
-      };
+        document.getElementById("submit_register").addEventListener("click", registerUser, false);
 
-      document.getElementById("submit_register").addEventListener("click", registerUser, false);
+        async function registerUser() {
 
-      async function registerUser() {
+            const emailInput = document.querySelector("#register_email");
+            // const passwordInput = document.querySelector("#register_password");
+            // const userTypeInput = document.querySelector("#register_user_types");
 
-        const emailInput = document.querySelector("#register_email");
-        const passwordInput = document.querySelector("#register_password");
-        const userTypeInput = document.querySelector("#register_user_types");
+            const auth = getAuth();
+            auth.languageCode = 'ro';
+            // createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
+            createUserWithEmailAndPassword(auth, emailInput.value, "123456")
+                .then(async (userCredential) => {
+                    // Signed up
+                    const user = userCredential.user;
 
-        const auth = getAuth();
-        createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
-        .then(async (userCredential) => {
-    // Signed up 
-          const user = userCredential.user;
+                    const docRef = await addDoc(collection(db, "users"), {
+                        user_id: user.uid,
+                        email: emailInput.value,
+                        // user_type_id: userTypeInput.value
+                        user_type_id: "parent"
+                    });
 
-          const docRef = await addDoc(collection(db, "users"), {
-            user_id: user.uid,
-            email: emailInput.value,
-            user_type_id: userTypeInput.value
-          });
+                    document.getElementById("register_title").innerHTML = "Registered user with id=" + docRef.id;
 
-          document.getElementById("register_title").innerHTML = "Registered user with id=" + docRef.id
-          emailInput.value = "";
-          passwordInput.value = "";
+                    sendEmailVerification(user)
+                        .then(async () => {
+                            document.getElementById("email_verification").innerHTML = "Email validation sent";
+                        });
 
-          const userTypeText = userTypeInput.options[userTypeInput.selectedIndex].text;
-          navigate(userTypeText);
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          console.log("errorCode " + errorCode);
-          console.log("message=" + errorMessage);
-          handleRegisterError(errorCode);
-        });
-      }
+                    emailInput.value = "";
+                    // passwordInput.value = "";
 
-      function handleRegisterError(errorCode) {
-        switch (errorCode) {
-        case "auth/email-already-in-use":
-          document.getElementById("register_title").innerHTML = "Email is already in use!";
-          break;
+                    // const userTypeText = userTypeInput.options[userTypeInput.selectedIndex].text;
+                    // navigate(userTypeText);
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.log("errorCode " + errorCode);
+                    console.log("message=" + errorMessage);
+                    handleRegisterError(errorCode);
+                });
         }
-      }
 
-      document.getElementById("submit_login").addEventListener("click", loginUser, false);
-      async function loginUser() {
-      //todo -- add type picker here too?
-        const emailInput = document.querySelector("#login_email");
-        const passwordInput = document.querySelector("#login_password");
+        function handleRegisterError(errorCode) {
+            switch (errorCode) {
+                case "auth/email-already-in-use":
+                    document.getElementById("register_title").innerHTML = "Email is already in use!";
+                    break;
+            }
+        }
 
-        const auth = getAuth();
-        signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
-        .then(async (userCredential) => {
-    // Signed in 
-          const user = userCredential.user;
-          document.getElementById("login_title").innerHTML = "Logged in user with id=" + user.uid
-          emailInput.value = "";
-          passwordInput.value = "";
+        document.getElementById("submit_login").addEventListener("click", loginUser, false);
 
-          const foundUsers = query(collection(db, "users"), where("user_id", "==", user.uid));
-          const querySnapshot = await getDocs(foundUsers);
-          const firstUser = querySnapshot.docs[0].data();
-          const userTypeDocument = await getDoc(doc(db, "user_types", firstUser.user_type_id));
-          var userTypeData = userTypeDocument.data();
+        async function loginUser() {
+            //todo -- add type picker here too?
+            const emailInput = document.querySelector("#login_email");
+            const passwordInput = document.querySelector("#login_password");
 
-          navigate(userTypeData.name);
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          console.log("errorCode " + errorCode);
-          console.log("message=" + errorMessage);
-          handleLoginError(errorCode);
-        });
-      }
+            const auth = getAuth();
+            signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
+                .then(async (userCredential) => {
+                    // Signed in
+                    const user = userCredential.user;
+                    document.getElementById("login_title").innerHTML = "Logged in user with id=" + user.uid
+                    emailInput.value = "";
+                    passwordInput.value = "";
 
-      function handleLoginError(errorCode) {
-       switch (errorCode) {
-       case "auth/invalid-email":
-        document.getElementById("login_title").innerHTML = "Invalid email!";
-        break;
+                    if (user.emailVerified) { //This will return true or false
+                        console.log('email is verified')
+                        // sessionStorage.setItem('isFirstLogin', getAdditionalUserInfo(userCredential).isNewUser);
+                        sessionStorage.setItem("email", user.email);
+                        navigate("parent");
+                    } else {
+                        console.log('email not verified')
+                        document.getElementById("login_title").innerHTML = "Please verify email!"
+                    }
 
-      case "auth/invalid-credential":
-        document.getElementById("login_title").innerHTML = "Invalid credentials!";
-        break;
-      }
+                    // const foundUsers = query(collection(db, "users"), where("user_id", "==", user.uid));
+                    // const querySnapshot = await getDocs(foundUsers);
+                    // const firstUser = querySnapshot.docs[0].data();
+                    // const userTypeDocument = await getDoc(doc(db, "user_types", firstUser.user_type_id));
+                    // var userTypeData = userTypeDocument.data();
+
+                    // navigate(userTypeData.name);
+                    // navigate("parent");
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.log("errorCode " + errorCode);
+                    console.log("message=" + errorMessage);
+                    handleLoginError(errorCode);
+                });
+        }
+
+        function handleLoginError(errorCode) {
+            switch (errorCode) {
+                case "auth/invalid-email":
+                    document.getElementById("login_title").innerHTML = "Invalid email!";
+                    break;
+
+                case "auth/invalid-credential":
+                    document.getElementById("login_title").innerHTML = "Invalid credentials!";
+                    break;
+            }
+        }
+
+        function navigate(userTypeText) {
+            switch (userTypeText) {
+                case "trainer":
+                    window.location.href = "trainer/index.html";
+                    break;
+
+                case "child":
+                    window.location.href = "child/index.html";
+                    break;
+
+                case "parent":
+                    window.location.href = "parent/index.html";
+                    break;
+            }
+        }
     }
-
-    function navigate(userTypeText) {
-     switch(userTypeText) {
-     case "trainer":
-      window.location.href = "trainer/index.html";
-      break;
-
-    case "child":
-      window.location.href = "child/index.html";
-      break;
-
-    case "parent":
-     window.location.href = "parent/index.html";
-     break;
-   }
- }
-}
 </script>
 </body>

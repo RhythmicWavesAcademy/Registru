@@ -1,200 +1,216 @@
-	<!DOCTYPE html>
-	<html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-		<title>Trainer dashboard</title>
-	</head>
-	<body>
-		<h1> Welcome trainer </h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Trainer dashboard</title>
+</head>
+<body>
+<h1> Welcome trainer </h1>
 
-		<h1 id="classes_today_title"> Classes today </h1>
-		<form id="class_activity_form" action="javascript:void(0);" method="post">
-			<div class="form-group">
-				<select name="class_activity" id="class_activity">
-					<option disabled selected value> -- select an option -- </option>
-				</select><br />				
-			</div>
-		</form>  
-		<div id="children_list"></div>
+<h1 id="classes_today_title"> Classes today </h1>
+<form id="class_activity_form" action="javascript:void(0);" method="post">
+    <div class="form-group">
+        <select name="class_activity" id="class_activity">
+            <option disabled selected value> -- select an option --</option>
+        </select><br/>
+    </div>
+</form>
+<div id="children_list"></div>
 
-		<script type="module">
-					//todo -- add children to parent when inserting - remove hardcoded id
-					// update / delete entries
+<script type="module">
+    //todo -- add children to parent when inserting - remove hardcoded id
+    // update / delete entries
+    //add indexes to firestore.indexes.json
 
-			import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
-			import { getFirestore } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
-			import { collection, getDocs, doc, getDoc, query, where, addDoc, deleteDoc, serverTimestamp, orderBy, limit, updateDoc  } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js"; 
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        collection,
+        getDocs,
+        doc,
+        getDoc,
+        query,
+        where,
+        addDoc,
+        deleteDoc,
+        serverTimestamp,
+        orderBy,
+        limit,
+        updateDoc
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
 
-			window.onload = async() => { 
-			  // TODO: Add SDKs for Firebase products that you want to use
-			  // https://firebase.google.com/docs/web/setup#available-libraries
+    window.onload = async () => {
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
 
-				const firebaseConfig = {
-					apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
-					authDomain: "registru-d6b7b.firebaseapp.com",
-					projectId: "registru-d6b7b",
-					storageBucket: "registru-d6b7b.firebasestorage.app",
-					messagingSenderId: "914926288060",
-					appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
-					measurementId: "G-QSDZCKE9MR"
-				};
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
+            authDomain: "registru-d6b7b.firebaseapp.com",
+            projectId: "registru-d6b7b",
+            storageBucket: "registru-d6b7b.firebasestorage.app",
+            messagingSenderId: "914926288060",
+            appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
+            measurementId: "G-QSDZCKE9MR"
+        };
 
-				const app = initializeApp(firebaseConfig);
-				const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-				const currentDay = new Date().toLocaleString('en-us', {  weekday: 'long' });
+        const currentDay = new Date().toLocaleString('en-us', {weekday: 'long'});
 
-				const foundActivityByTrainer = query(collection(db, "class_activity"), where("trainer_id", "==", "tG7dgusxhbPzvCBqFSrE"));
-				const querySnapshot = await getDocs(foundActivityByTrainer);
-				const querySnapshotData = querySnapshot.docs;
-				var classActivityElement = document.getElementById("class_activity");
+        const foundActivityByTrainer = query(collection(db, "class_activity"), where("trainer_id", "==", "tG7dgusxhbPzvCBqFSrE"));
+        const querySnapshot = await getDocs(foundActivityByTrainer);
+        const querySnapshotData = querySnapshot.docs;
+        var classActivityElement = document.getElementById("class_activity");
 
-				for(let classActivityDocument of querySnapshot.docs) {
-					var data = classActivityDocument.data();
+        for (let classActivityDocument of querySnapshot.docs) {
+            var data = classActivityDocument.data();
 
-					if(data.day == currentDay) {
-						classActivityElement.insertAdjacentHTML( 'beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + ' ' +	data.time + '</option>');
-					}
-				};
+            if (data.day == currentDay) {
+                classActivityElement.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + ' ' + data.time + '</option>');
+            }
+        }
+        ;
 
-				document.getElementById("class_activity").addEventListener("change", listChildrenByActivity, false);
+        document.getElementById("class_activity").addEventListener("change", listChildrenByActivity, false);
 
-				async function listChildrenByActivity() {
-					const activityId = document.getElementById("class_activity").value;
-					const foundChildrenByActivity = query(collection(db, "children"), where("class_activities_id", 'array-contains',activityId));
-					const querySnapshotFoundChildren = await getDocs(foundChildrenByActivity);
+        async function listChildrenByActivity() {
+            const activityId = document.getElementById("class_activity").value;
+            const foundChildrenByActivity = query(collection(db, "children"), where("class_activities_id", 'array-contains', activityId));
+            const querySnapshotFoundChildren = await getDocs(foundChildrenByActivity);
 
-					for(let childrenDocument of querySnapshotFoundChildren.docs) {
-						var childrenElement = document.getElementById("children_list");
-						var data = childrenDocument.data();
+            for (let childrenDocument of querySnapshotFoundChildren.docs) {
+                var childrenElement = document.getElementById("children_list");
+                var data = childrenDocument.data();
 
-						childrenElement.insertAdjacentHTML( 'beforeend', childrenDocument.id + "<br/>");
-						childrenElement.insertAdjacentHTML( 'beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>" );
-						childrenElement.insertAdjacentHTML( 'beforeend', "age:" + data.age + "<br/>" );
-						childrenElement.insertAdjacentHTML( 'beforeend', "gender:" + data.gender + "<br/>");
-						childrenElement.insertAdjacentHTML( 'beforeend', 'isPresent?: <span id=' + activityId + '_present class="material-icons">check</span> <span id=' + activityId + '_absent class="material-icons">close</span><br/>');
+                childrenElement.insertAdjacentHTML('beforeend', childrenDocument.id + "<br/>");
+                childrenElement.insertAdjacentHTML('beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>");
+                childrenElement.insertAdjacentHTML('beforeend', "age:" + data.age + "<br/>");
+                childrenElement.insertAdjacentHTML('beforeend', "gender:" + data.gender + "<br/>");
+                childrenElement.insertAdjacentHTML('beforeend', 'isPresent?: <span id=' + activityId + '_present class="material-icons">check</span> <span id=' + activityId + '_absent class="material-icons">close</span><br/>');
 
-						// const querySnapshotClassActivity = await getDoc(doc(db, 'class_activity', activityId));
-						// const querySnapshotClassActivityData = querySnapshotClassActivity.data();
-						// const lessonsPerBillingCycle = querySnapshotClassActivityData.lesson_per_billing_cycle;
+                // const querySnapshotClassActivity = await getDoc(doc(db, 'class_activity', activityId));
+                // const querySnapshotClassActivityData = querySnapshotClassActivity.data();
+                // const lessonsPerBillingCycle = querySnapshotClassActivityData.lesson_per_billing_cycle;
 
-						// const lastAttendanceByBillingCycleForChildren = query(collection(db, "attendance"), orderBy("created_at", "desc"), limit(lessonsPerBillingCycle - 1), where("children_id", "==", childrenDocument.id));
-						// const querySnapshotLastAttendanceByBillingCycleForChildren = await getDocs(lastAttendanceByBillingCycleForChildren);
-						// const querySnapshotLastAttendanceByBillingCycleForChildrenDocs = querySnapshotLastAttendanceByBillingCycleForChildren.docs.map(doc => doc.data());
+                // const lastAttendanceByBillingCycleForChildren = query(collection(db, "attendance"), orderBy("created_at", "desc"), limit(lessonsPerBillingCycle - 1), where("children_id", "==", childrenDocument.id));
+                // const querySnapshotLastAttendanceByBillingCycleForChildren = await getDocs(lastAttendanceByBillingCycleForChildren);
+                // const querySnapshotLastAttendanceByBillingCycleForChildrenDocs = querySnapshotLastAttendanceByBillingCycleForChildren.docs.map(doc => doc.data());
 
-						// var billingCycleEnded = false;
-						// if (querySnapshotLastAttendanceByBillingCycleForChildrenDocs.length == lessonsPerBillingCycle - 1) {
-						// 	billingCycleEnded = querySnapshotLastAttendanceByBillingCycleForChildrenDocs.every(item => item.should_pay == false);
-						// }
+                // var billingCycleEnded = false;
+                // if (querySnapshotLastAttendanceByBillingCycleForChildrenDocs.length == lessonsPerBillingCycle - 1) {
+                // 	billingCycleEnded = querySnapshotLastAttendanceByBillingCycleForChildrenDocs.every(item => item.should_pay == false);
+                // }
 
 
-						// if (billingCycleEnded) {
-						// 	childrenElement.insertAdjacentHTML( 'beforeend', 'should pay?: <span id=' + activityId + '_pay class="material-icons">check</span><br />');
+                // if (billingCycleEnded) {
+                // 	childrenElement.insertAdjacentHTML( 'beforeend', 'should pay?: <span id=' + activityId + '_pay class="material-icons">check</span><br />');
 
-						// 	var classAttendanceSpanPay = document.getElementById(activityId + "_pay");
-						// 	classAttendanceSpanPay.addEventListener("click", updatePaidMembership, false);
-						// 	classAttendanceSpanPay.activityId = activityId;
-						// 	classAttendanceSpanPay.childrenId = childrenDocument.id;
-						// } else {
-						// 	childrenElement.insertAdjacentHTML( 'beforeend', 'should pay?: <span id=' + activityId + '_pay class="material-icons">close</span><br />');
-						// }
+                // 	var classAttendanceSpanPay = document.getElementById(activityId + "_pay");
+                // 	classAttendanceSpanPay.addEventListener("click", updatePaidMembership, false);
+                // 	classAttendanceSpanPay.activityId = activityId;
+                // 	classAttendanceSpanPay.childrenId = childrenDocument.id;
+                // } else {
+                // 	childrenElement.insertAdjacentHTML( 'beforeend', 'should pay?: <span id=' + activityId + '_pay class="material-icons">close</span><br />');
+                // }
 
-						childrenElement.insertAdjacentHTML( 'beforeend', "---------------------- </br>");
+                childrenElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
 
-						var classAttendanceSpanPresent = document.getElementById(activityId + "_present");
-						classAttendanceSpanPresent.addEventListener("click", addClassAttendance, false);
-						classAttendanceSpanPresent.activityId = activityId;
-						classAttendanceSpanPresent.childrenId = childrenDocument.id;
-						classAttendanceSpanPresent.isPresent = true;
-						classAttendanceSpanPresent.date = toLocalISOString(new Date());
+                var classAttendanceSpanPresent = document.getElementById(activityId + "_present");
+                classAttendanceSpanPresent.addEventListener("click", addClassAttendance, false);
+                classAttendanceSpanPresent.activityId = activityId;
+                classAttendanceSpanPresent.childrenId = childrenDocument.id;
+                classAttendanceSpanPresent.isPresent = true;
+                classAttendanceSpanPresent.date = toLocalISOString(new Date());
 
-						var classAttendanceSpanPresent = document.getElementById(activityId + "_absent");
-						classAttendanceSpanPresent.addEventListener("click", addClassAttendance, false);
-						classAttendanceSpanPresent.activityId = activityId;
-						classAttendanceSpanPresent.childrenId = childrenDocument.id;
-						classAttendanceSpanPresent.isPresent = false;
-						classAttendanceSpanPresent.date = toLocalISOString(new Date());
-					};
-				}
+                var classAttendanceSpanPresent = document.getElementById(activityId + "_absent");
+                classAttendanceSpanPresent.addEventListener("click", addClassAttendance, false);
+                classAttendanceSpanPresent.activityId = activityId;
+                classAttendanceSpanPresent.childrenId = childrenDocument.id;
+                classAttendanceSpanPresent.isPresent = false;
+                classAttendanceSpanPresent.date = toLocalISOString(new Date());
+            }
+            ;
+        }
 
-				async function addClassAttendance(evt) {
-					const activityId = evt.currentTarget.activityId;
-					const childrenId = evt.currentTarget.childrenId;
-					const isPresent = evt.currentTarget.isPresent;
-					const date = evt.currentTarget.date;
+        async function addClassAttendance(evt) {
+            const activityId = evt.currentTarget.activityId;
+            const childrenId = evt.currentTarget.childrenId;
+            const isPresent = evt.currentTarget.isPresent;
+            const date = evt.currentTarget.date;
 
-					const docRef = await addDoc(collection(db, "attendance"), {
-						children_id: childrenId,
-						class_activity_id: activityId,
-						is_present: isPresent,
-						present_at: date,
-						created_at: serverTimestamp(),
-						should_pay: false
-					});
+            const docRef = await addDoc(collection(db, "attendance"), {
+                children_id: childrenId,
+                class_activity_id: activityId,
+                is_present: isPresent,
+                present_at: date,
+                created_at: serverTimestamp(),
+                should_pay: false
+            });
 
-					if (isPresent) {
-						document.getElementById("classes_today_title").innerHTML = "Children id is present " + childrenId + " attendanceId: " + docRef.id;
-					} else {
-						document.getElementById("classes_today_title").innerHTML = "Children id is not present " + childrenId + " attendanceId: " + docRef.id;
-					}
+            if (isPresent) {
+                document.getElementById("classes_today_title").innerHTML = "Children id is present " + childrenId + " attendanceId: " + docRef.id;
+            } else {
+                document.getElementById("classes_today_title").innerHTML = "Children id is not present " + childrenId + " attendanceId: " + docRef.id;
+            }
 
-					const querySnapshotClassActivity = await getDoc(doc(db, 'class_activity', activityId));
-					const querySnapshotClassActivityData = querySnapshotClassActivity.data();
-					const lessonsPerBillingCycle = querySnapshotClassActivityData.lesson_per_billing_cycle;
+            const querySnapshotClassActivity = await getDoc(doc(db, 'class_activity', activityId));
+            const querySnapshotClassActivityData = querySnapshotClassActivity.data();
+            const lessonsPerBillingCycle = querySnapshotClassActivityData.lesson_per_billing_cycle;
 
-					const lastAttendanceByBillingCycleForChildren = query(collection(db, "attendance"), orderBy("created_at", "desc"), limit(lessonsPerBillingCycle - 1), where("children_id", "==", childrenId));
-					const querySnapshotLastAttendanceByBillingCycleForChildren = await getDocs(lastAttendanceByBillingCycleForChildren);
-					const querySnapshotLastAttendanceByBillingCycleForChildrenDocs = querySnapshotLastAttendanceByBillingCycleForChildren.docs.map(doc => doc.data());
+            const lastAttendanceByBillingCycleForChildren = query(collection(db, "attendance"), orderBy("created_at", "desc"), limit(lessonsPerBillingCycle - 1), where("children_id", "==", childrenId));
+            const querySnapshotLastAttendanceByBillingCycleForChildren = await getDocs(lastAttendanceByBillingCycleForChildren);
+            const querySnapshotLastAttendanceByBillingCycleForChildrenDocs = querySnapshotLastAttendanceByBillingCycleForChildren.docs.map(doc => doc.data());
 
-					var billingCycleEnded = false;
-					if (querySnapshotLastAttendanceByBillingCycleForChildrenDocs.length == lessonsPerBillingCycle - 1) {
-						billingCycleEnded = querySnapshotLastAttendanceByBillingCycleForChildrenDocs.every(item => item.should_pay == false);
-					}
+            var billingCycleEnded = false;
+            if (querySnapshotLastAttendanceByBillingCycleForChildrenDocs.length == lessonsPerBillingCycle - 1) {
+                billingCycleEnded = querySnapshotLastAttendanceByBillingCycleForChildrenDocs.every(item => item.should_pay == false);
+            }
 
-					var childrenElement = document.getElementById("children_list");
+            var childrenElement = document.getElementById("children_list");
 
-					let currentQuantityRange = document.getElementById(activityId + "_container");
-					if (currentQuantityRange) currentQuantityRange.remove();
+            let currentQuantityRange = document.getElementById(activityId + "_container");
+            if (currentQuantityRange) currentQuantityRange.remove();
 
-						if (billingCycleEnded) {
-							childrenElement.insertAdjacentHTML( 'beforeend', '<div id=' + activityId +'_container>should pay?: <span id=' + activityId + '_pay class="material-icons">check</span><br /></div>');
+            if (billingCycleEnded) {
+                childrenElement.insertAdjacentHTML('beforeend', '<div id=' + activityId + '_container>should pay?: <span id=' + activityId + '_pay class="material-icons">check</span><br /></div>');
 
-							var classAttendanceSpanPay = document.getElementById(activityId + "_pay");
-							classAttendanceSpanPay.addEventListener("click", updatePaidMembership, false);
-							classAttendanceSpanPay.activityId = activityId;
-							classAttendanceSpanPay.childrenId = childrenId;
-						} else {
-							childrenElement.insertAdjacentHTML( 'beforeend', '<div id=' + activityId +'_container>should pay?: <span id=' + activityId + '_pay class="material-icons">close</span><br /></div>');
-						}
-					}
+                var classAttendanceSpanPay = document.getElementById(activityId + "_pay");
+                classAttendanceSpanPay.addEventListener("click", updatePaidMembership, false);
+                classAttendanceSpanPay.activityId = activityId;
+                classAttendanceSpanPay.childrenId = childrenId;
+            } else {
+                childrenElement.insertAdjacentHTML('beforeend', '<div id=' + activityId + '_container>should pay?: <span id=' + activityId + '_pay class="material-icons">close</span><br /></div>');
+            }
+        }
 
-					async function updatePaidMembership(evt) {
-						const activityId = evt.currentTarget.activityId;
-						const childrenId = evt.currentTarget.childrenId;
+        async function updatePaidMembership(evt) {
+            const activityId = evt.currentTarget.activityId;
+            const childrenId = evt.currentTarget.childrenId;
 
-						const lastAttendanceForChildrenQuery = query(collection(db, "attendance"), orderBy("created_at", "desc"), limit(1), where("children_id", "==", childrenId), where("class_activity_id", "==", activityId));
+            const lastAttendanceForChildrenQuery = query(collection(db, "attendance"), orderBy("created_at", "desc"), limit(1), where("children_id", "==", childrenId), where("class_activity_id", "==", activityId));
 
-						const querySnapshotLastAttendanceForChildren = await getDocs(lastAttendanceForChildrenQuery);
-						const lastAttendanceByChildrenDocument = querySnapshotLastAttendanceForChildren.docs[0];
+            const querySnapshotLastAttendanceForChildren = await getDocs(lastAttendanceForChildrenQuery);
+            const lastAttendanceByChildrenDocument = querySnapshotLastAttendanceForChildren.docs[0];
 
-						const docRef = doc(db, "attendance", lastAttendanceByChildrenDocument.id);
-						await updateDoc(docRef, {
-							should_pay: true,
-							membership_paid_date: serverTimestamp()
-						});
+            const docRef = doc(db, "attendance", lastAttendanceByChildrenDocument.id);
+            await updateDoc(docRef, {
+                should_pay: true,
+                membership_paid_date: serverTimestamp()
+            });
 
-						document.getElementById("classes_today_title").innerHTML = "Membership paid for children id" + childrenId + " attendanceId: " + lastAttendanceByChildrenDocument.id;
-					}
+            document.getElementById("classes_today_title").innerHTML = "Membership paid for children id" + childrenId + " attendanceId: " + lastAttendanceByChildrenDocument.id;
+        }
 
-					function toLocalISOString(date) {
-						const localDate = new Date(date - date.getTimezoneOffset() * 60000);
-						localDate.setSeconds(null);
-						localDate.setMilliseconds(null);
-						return localDate.toISOString().slice(0, -1);
-					}
-				}
-			</script>
-		</body>
-		</html>
+        function toLocalISOString(date) {
+            const localDate = new Date(date - date.getTimezoneOffset() * 60000);
+            localDate.setSeconds(null);
+            localDate.setMilliseconds(null);
+            return localDate.toISOString().slice(0, -1);
+        }
+    }
+</script>
+</body>
+</html>
