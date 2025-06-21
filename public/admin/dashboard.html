@@ -9,41 +9,7 @@
 <body>
 <h1> Welcome admin </h1>
 
-<h2 id="test"> Add parent </h2>
-<form id="parent_form" action="javascript:void(0);" method="post">
-    <div class="form-group">
-        <label>First Name</label>
-        <input type="text" id="parent_first_name"></br>
-        <label>Last Name</label>
-        <input type="text" id="parent_last_name"></br>
-
-        <input type="submit" value="Add parent" id="submit_parent">
-    </div>
-</form>
-
-<h2 id="children_title"> Add children </h2>
-<form id="children_form" action="javascript:void(0);" method="post">
-    <div class="form-group">
-        <label>First Name</label>
-        <input type="text" id="children_first_name"></br>
-
-        <label>Last Name</label>
-        <input type="text" id="children_last_name"></br>
-
-        <label>Gender</label>
-        <select name="children_gender" id="children_gender">
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-        </select><br/>
-
-        <label>Age</label>
-        <input type="number" id="children_age" name="children_age" min="1" max="99"><br/>
-
-        <div id="class_activities_form_container"></div>
-
-        <input type="submit" value="Add children" id="submit_children">
-    </div>
-</form>
+<h2 id="test"><a href="add_parent.html">Add parent and children</a></h2>
 
 <h2 id="trainer_title"> Add trainer </h2>
 <form id="trainer_form" action="javascript:void(0);" method="post">
@@ -148,7 +114,6 @@
             measurementId: "G-QSDZCKE9MR"
         };
 
-
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -166,8 +131,6 @@
 
             childrenElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
         }
-        ;
-
 
         const querySnapshotParents = await getDocs(collection(db, "parents"));
         for (let parentDocument of querySnapshotParents.docs) {
@@ -182,8 +145,6 @@
 
             parentElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
         }
-        ;
-
 
         const querySnapshotTrainers = await getDocs(collection(db, "trainers"));
         for (let trainerDocument of querySnapshotTrainers.docs) {
@@ -194,7 +155,6 @@
             trainerElement.insertAdjacentHTML('beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>");
             trainerElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
         }
-        ;
 
         const querySnapshotClassActivity = await getDocs(collection(db, "class_activity"));
         for (let classActivityDocument of querySnapshotClassActivity.docs) {
@@ -214,7 +174,6 @@
 
             classActivityElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
         }
-        ;
 
         const querySnapshotClassAttendance = await getDocs(collection(db, "attendance"));
 
@@ -241,26 +200,6 @@
 
             classAttendanceElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
         }
-        ;
-
-        document.getElementById("submit_parent").addEventListener("click", addParent, false);
-
-        async function addParent() {
-            const firstNameInput = document.querySelector("#parent_first_name");
-            const lastNameInput = document.querySelector("#parent_last_name");
-
-            const docRef = await addDoc(collection(db, "parents"), {
-                children: ["W6fI4gTbBJl0YAxeY8di"],
-                first_name: firstNameInput.value,
-                last_name: lastNameInput.value,
-                created_at: serverTimestamp()
-            });
-
-            document.getElementById("test").innerHTML = "Added parent with id=" + docRef.id
-            firstNameInput.value = "";
-            lastNameInput.value = "";
-        }
-
 
         document.getElementById("submit_trainer").addEventListener("click", addTrainer, false);
 
@@ -277,41 +216,6 @@
             document.getElementById("trainer_title").innerHTML = "Added trainer with id=" + docRef.id
             firstNameInput.value = "";
             lastNameInput.value = "";
-        }
-
-        document.getElementById("submit_children").addEventListener("click", addChildren, false);
-
-        async function addChildren() {
-            const firstNameInput = document.querySelector("#children_first_name");
-            const lastNameInput = document.querySelector("#children_last_name");
-            const genderInput = document.querySelector("#children_gender");
-            const ageInput = document.querySelector("#children_age");
-
-            var classActivityCheckboxes = document.querySelectorAll('input[name=children_class_activity]:checked');
-            const checkedClassActivities = [];
-            for (let checkbox of classActivityCheckboxes) {
-                if (checkbox.checked) {
-                    checkedClassActivities.push(checkbox.value);
-                }
-            }
-
-            const docRef = await addDoc(collection(db, "children"), {
-                first_name: firstNameInput.value,
-                last_name: lastNameInput.value,
-                gender: genderInput.value,
-                age: parseInt(ageInput.value),
-                class_activities_id: checkedClassActivities,
-                created_at: serverTimestamp()
-            });
-
-            document.getElementById("children_title").innerHTML = "Added children with id=" + docRef.id
-            firstNameInput.value = "";
-            lastNameInput.value = "";
-            genderInput.value = "male";
-            ageInput.value = "";
-            for (let checkbox of classActivityCheckboxes) {
-                checkbox.checked = false;
-            }
         }
 
         document.getElementById("submit_class_activity").addEventListener("click", addClassActivity, false);
@@ -336,17 +240,6 @@
             nameInput.value = "";
         }
 
-
-        var classActivitiesFormContainer = document.getElementById("class_activities_form_container");
-        for (let classActivitiesDocument of querySnapshotClassActivity.docs) {
-            var data = classActivitiesDocument.data();
-
-            classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<input type="checkbox" id=' + classActivitiesDocument.id + ' name="children_class_activity" value=' + classActivitiesDocument.id + '>');
-            classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<label for=' + classActivitiesDocument.id + '>' + data.name + '</label><br>');
-        }
-        ;
-
-
         //populate class activity trainer section
         var trainerElementActivities = document.getElementsByName("activity_trainer");
 
@@ -359,7 +252,6 @@
                 option.value = trainerDocument2.id;
                 trainerElementActivities[i].add(option);
             }
-            ;
         }
 
         function toLocalISOString(date) {
@@ -378,7 +270,6 @@
 
             attendanceChildrenId.insertAdjacentHTML('beforeend', '<option value=' + childrenDocument.id + '>' + data.first_name + " " + data.last_name + '</option>');
         }
-        ;
 
         var attendanceClassActivity = document.getElementById("children_attendance_class_activity");
         for (let classActivityDocument of querySnapshotClassActivity.docs) {
@@ -386,7 +277,6 @@
 
             attendanceClassActivity.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + '</option>');
         }
-        ;
 
         document.getElementById("submit_class_attendance").addEventListener("click", addClassAttendance, false);
 
@@ -421,7 +311,6 @@
 
         }
     }
-
 </script>
 </body>
 </html>

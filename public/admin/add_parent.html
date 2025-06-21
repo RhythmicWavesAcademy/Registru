@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add parent</title>
+</head>
+<body>
+
+<h2 id="children_title"> Add children </h2>
+<form id="children_form" action="javascript:void(0);" method="post">
+    <div class="form-group">
+        <label>First Name</label>
+        <input type="text" id="children_first_name"></br>
+
+        <label>Last Name</label>
+        <input type="text" id="children_last_name"></br>
+
+        <label>Gender</label>
+        <select name="children_gender" id="children_gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+        </select><br/>
+
+        <label>Age</label>
+        <input type="number" id="children_age" name="children_age" min="1" max="99"><br/>
+
+        <div id="class_activities_form_container"></div>
+
+        <input type="submit" value="Add children" id="submit_children">
+    </div>
+</form>
+
+<h2 id="parent_title"> Add parent </h2>
+<h1 id="register_title" style="display:none;"> Register </h1>
+<h1 id="email_verification" style="display: none;">Email validation sent</h1>
+<form id="parent_form" action="javascript:void(0);" method="post">
+    <div class="form-group">
+        <label>First Name</label>
+        <input type="text" id="parent_first_name"></br>
+        <label>Last Name</label>
+        <input type="text" id="parent_last_name"></br>
+        <label>Email</label>
+        <input type="text" id="parent_email"></br>
+
+        <div id="children_form_container"></div>
+
+        <input type="submit" value="Add parent" id="submit_parent">
+    </div>
+</form>
+
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        collection,
+        getDocs,
+        doc,
+        getDoc,
+        query,
+        where,
+        addDoc,
+        deleteDoc,
+        serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+
+    import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        sendEmailVerification,
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    window.onload = async () => {
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
+            authDomain: "registru-d6b7b.firebaseapp.com",
+            projectId: "registru-d6b7b",
+            storageBucket: "registru-d6b7b.firebasestorage.app",
+            messagingSenderId: "914926288060",
+            appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
+            measurementId: "G-QSDZCKE9MR"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.getElementById("submit_children").addEventListener("click", addChildren, false);
+
+        async function addChildren() {
+            const firstNameInput = document.querySelector("#children_first_name");
+            const lastNameInput = document.querySelector("#children_last_name");
+            const genderInput = document.querySelector("#children_gender");
+            const ageInput = document.querySelector("#children_age");
+
+            const classActivityCheckboxes = document.querySelectorAll('input[name=children_class_activity]:checked');
+            const checkedClassActivities = [];
+            for (let checkbox of classActivityCheckboxes) {
+                if (checkbox.checked) {
+                    checkedClassActivities.push(checkbox.value);
+                }
+            }
+
+            const docRef = await addDoc(collection(db, "children"), {
+                first_name: firstNameInput.value,
+                last_name: lastNameInput.value,
+                gender: genderInput.value,
+                age: parseInt(ageInput.value),
+                class_activities_id: checkedClassActivities,
+                created_at: serverTimestamp()
+            });
+
+            document.getElementById("children_title").innerHTML = "Added children with id=" + docRef.id + " Reloading."
+            firstNameInput.value = "";
+            lastNameInput.value = "";
+            genderInput.value = "male";
+            ageInput.value = "";
+            for (let checkbox of classActivityCheckboxes) {
+                checkbox.checked = false;
+            }
+
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
+        }
+
+        const querySnapshotClassActivity = await getDocs(collection(db, "class_activity"));
+        const classActivitiesFormContainer = document.getElementById("class_activities_form_container");
+        for (let classActivitiesDocument of querySnapshotClassActivity.docs) {
+            const data = classActivitiesDocument.data();
+
+            classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<input type="checkbox" id=' + classActivitiesDocument.id + ' name="children_class_activity" value=' + classActivitiesDocument.id + '>');
+            classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<label for=' + classActivitiesDocument.id + '>' + data.name + ' - ' + data.day + ' - ' + data.time + '</label><br>');
+        }
+
+        document.getElementById("submit_parent").addEventListener("click", registerUser, false);
+
+        async function addParent() {
+            const firstNameInput = document.querySelector("#parent_first_name");
+            const lastNameInput = document.querySelector("#parent_last_name");
+            const emailInput = document.querySelector("#parent_email");
+
+            const docRef = await addDoc(collection(db, "parents"), {
+                children: ["W6fI4gTbBJl0YAxeY8di"],
+                first_name: firstNameInput.value,
+                last_name: lastNameInput.value,
+                email: emailInput.value,
+                created_at: serverTimestamp()
+            });
+
+            document.getElementById("parent_title").innerHTML = "Added parent with id=" + docRef.id
+            firstNameInput.value = "";
+            lastNameInput.value = "";
+
+            return docRef.id;
+        }
+
+        async function registerUser() {
+            const emailInput = document.querySelector("#parent_email");
+            const emailVerification = document.getElementById("email_verification");
+            const registerTitle = document.getElementById("register_title");
+            emailVerification.style.display = "none";
+            registerTitle.style.display = "none";
+
+            const auth = getAuth();
+            auth.languageCode = 'ro';
+            createUserWithEmailAndPassword(auth, emailInput.value, "123456")
+                .then(async (userCredential) => {
+                    // Signed up
+                    const user = userCredential.user;
+
+                    const parentId = await addParent();
+
+                    const docRef = await addDoc(collection(db, "users"), {
+                        auth_id: user.uid,
+                        email: emailInput.value,
+                        // user_type_id: userTypeInput.value
+                        user_type_id: "parent",
+                        user_id: parentId
+                    });
+
+                    registerTitle.style.display = "block";
+                    registerTitle.innerHTML = "Registered user with id=" + docRef.id;
+
+                    sendEmailVerification(user)
+                        .then(async () => {
+                            emailVerification.style.display = "block";
+                        });
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.log("errorCode " + errorCode);
+                    console.log("message=" + errorMessage);
+                    handleRegisterError(errorCode);
+                });
+        }
+
+        function handleRegisterError(errorCode) {
+            switch (errorCode) {
+                case "auth/email-already-in-use":
+                    document.getElementById("parent_title").innerHTML = "Email is already in use!";
+                    break;
+            }
+        }
+    }
+</script>
+</body>
+</html>
