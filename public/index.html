@@ -158,7 +158,6 @@
                     if (user.emailVerified) { //This will return true or false
                         console.log('email is verified')
                         // sessionStorage.setItem('isFirstLogin', getAdditionalUserInfo(userCredential).isNewUser);
-                        sessionStorage.setItem("email", user.email);
                         navigate("parent");
                     } else {
                         console.log('email not verified')

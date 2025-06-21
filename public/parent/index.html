@@ -6,8 +6,16 @@
     <title>Parent dashboard</title>
 </head>
 <body>
-<h1> Welcome parent </h1>
-<h1 id="reset_password"> Click here to reset password</h1>
+
+<div id="parent_logged_in_container" style="display: none;">
+    <h1> Welcome parent </h1>
+    <h1 id="reset_password"> Click here to reset password</h1>
+</div>
+
+<div id="not_loggedIn_container" style="display: none;">
+    <h1> Not logged in</h1>
+    <h2> Please <a href="../index.html">log in</a></h2>
+</div>
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
     import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
@@ -30,7 +38,8 @@
         isSignInWithEmailLink,
         signInWithEmailLink,
         getAdditionalUserInfo,
-        sendPasswordResetEmail
+        sendPasswordResetEmail,
+        onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
     window.onload = async () => {
@@ -50,23 +59,51 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-// Returning the respected value associated
-// with the provided key
         const auth = getAuth();
         auth.languageCode = 'ro';
-        const userEmail = sessionStorage.getItem("email");
 
-        document.getElementById("reset_password").addEventListener("click", resetPassword, false);
+        const resetPasswordTitle = document.getElementById("reset_password");
+        const parentLoggedInContainer = document.getElementById("parent_logged_in_container");
+        const notLoggedInContainer = document.getElementById("not_loggedIn_container");
 
-        async function resetPassword() {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+
+                const foundUsers = query(collection(db, "users"), where("user_id", "==", user.uid));
+                const querySnapshot = await getDocs(foundUsers);
+                const firstUser = querySnapshot.docs[0].data();
+                // const userTypeDocument = await getDoc(doc(db, "user_types", firstUser.user_type_id));
+                // var userTypeData = userTypeDocument.data();
+
+                if (firstUser.user_type_id == "parent") {
+                    console.log("you are parent");
+                    parentLoggedInContainer.style.display = "block";
+
+                    resetPasswordTitle.addEventListener("click", resetPassword, false);
+                    resetPasswordTitle.userEmail = user.email;
+                } else {
+                    notLoggedInContainer.style.display = "block";
+                }
+
+            } else {
+                // User is signed out
+                notLoggedInContainer.style.display = "block";
+            }
+        });
+
+        async function resetPassword(evt) {
+            const userEmail = evt.currentTarget.userEmail;
+            console.log(userEmail)
             sendPasswordResetEmail(auth, userEmail)
                 .then(() => {
-                    document.getElementById("reset_password").innerHTML = "Password reset sent";
+                    resetPasswordTitle.innerHTML = "Password reset sent";
                 })
                 .catch((error) => {
                     const errorCode = error.code;
                     const errorMessage = error.message;
-                    // ..
+                    console.log("errorCode " + errorCode);
+                    console.log("message=" + errorMessage);
                 });
         }
     }
