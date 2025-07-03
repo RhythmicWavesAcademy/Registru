@@ -3,51 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <title>Add parent</title>
 </head>
 <body>
 
-<h2 id="children_title"> Add children </h2>
+<h2 id="children_title"> Add parents and children </h2>
 <form id="children_form" action="javascript:void(0);" method="post">
     <div class="form-group">
-        <label>First Name</label>
-        <input type="text" id="children_first_name"></br>
 
-        <label>Last Name</label>
-        <input type="text" id="children_last_name"></br>
+        <p>Add new children <span class="material-icons" id="add_new_children">add</span></p>
+        <div id="children_container"></div>
 
-        <label>Gender</label>
-        <select name="children_gender" id="children_gender">
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-        </select><br/>
-
-        <label>Age</label>
-        <input type="number" id="children_age" name="children_age" min="1" max="99"><br/>
-
-        <div id="class_activities_form_container"></div>
-
-        <input type="submit" value="Add children" id="submit_children">
+        <p>Add new parent <span class="material-icons" id="add_new_parent">add</span></p>
+        <div id="parent_container"></div>
     </div>
+
+    <input type="submit" id="register" value="Register">
 </form>
 
-<h2 id="parent_title"> Add parent </h2>
 <h1 id="register_title" style="display:none;"> Register </h1>
 <h1 id="email_verification" style="display: none;">Email validation sent</h1>
-<form id="parent_form" action="javascript:void(0);" method="post">
-    <div class="form-group">
-        <label>First Name</label>
-        <input type="text" id="parent_first_name"></br>
-        <label>Last Name</label>
-        <input type="text" id="parent_last_name"></br>
-        <label>Email</label>
-        <input type="text" id="parent_email"></br>
 
-        <div id="children_form_container"></div>
-
-        <input type="submit" value="Add parent" id="submit_parent">
-    </div>
-</form>
 
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
@@ -66,8 +43,7 @@
 
     import {
         getAuth,
-        createUserWithEmailAndPassword,
-        sendEmailVerification,
+        onAuthStateChanged,
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
     window.onload = async () => {
@@ -87,16 +63,36 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        var parentCounter = 0;
+        var childrenCounter = 0;
 
-        document.getElementById("submit_children").addEventListener("click", addChildren, false);
+        const auth = getAuth(app);
+        auth.languageCode = 'ro';
 
-        async function addChildren() {
-            const firstNameInput = document.querySelector("#children_first_name");
-            const lastNameInput = document.querySelector("#children_last_name");
-            const genderInput = document.querySelector("#children_gender");
-            const ageInput = document.querySelector("#children_age");
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
 
-            const classActivityCheckboxes = document.querySelectorAll('input[name=children_class_activity]:checked');
+                const foundUsers = query(collection(db, "users"), where("user_id", "==", user.uid));
+                const querySnapshot = await getDocs(foundUsers);
+                const firstUser = querySnapshot.docs[0].data();
+
+                if (firstUser.user_type == "parent") {
+                    console.log("you are parent");
+                }
+
+            } else {
+                // User is signed out
+            }
+        });
+
+        async function addChildren(index) {
+            const firstNameInput = document.querySelector("#children_first_name_" + index);
+            const lastNameInput = document.querySelector("#children_last_name_" + index);
+            const genderInput = document.querySelector("#children_gender_" + index);
+            const ageInput = document.querySelector("#children_age_" + index);
+
+            const classActivityCheckboxes = document.querySelectorAll('input[name=children_class_activity_' + index + ']:checked');
             const checkedClassActivities = [];
             for (let checkbox of classActivityCheckboxes) {
                 if (checkbox.checked) {
@@ -113,7 +109,7 @@
                 created_at: serverTimestamp()
             });
 
-            document.getElementById("children_title").innerHTML = "Added children with id=" + docRef.id + " Reloading."
+            document.getElementById("children_title").innerHTML = "Added children with id=" + docRef.id;
             firstNameInput.value = "";
             lastNameInput.value = "";
             genderInput.value = "male";
@@ -122,89 +118,179 @@
                 checkbox.checked = false;
             }
 
-            setTimeout(() => {
-                location.reload();
-            }, 5000);
+            return docRef.id;
         }
 
-        const querySnapshotClassActivity = await getDocs(collection(db, "class_activity"));
-        const classActivitiesFormContainer = document.getElementById("class_activities_form_container");
-        for (let classActivitiesDocument of querySnapshotClassActivity.docs) {
-            const data = classActivitiesDocument.data();
-
-            classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<input type="checkbox" id=' + classActivitiesDocument.id + ' name="children_class_activity" value=' + classActivitiesDocument.id + '>');
-            classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<label for=' + classActivitiesDocument.id + '>' + data.name + ' - ' + data.day + ' - ' + data.time + '</label><br>');
-        }
-
-        document.getElementById("submit_parent").addEventListener("click", registerUser, false);
-
-        async function addParent() {
-            const firstNameInput = document.querySelector("#parent_first_name");
-            const lastNameInput = document.querySelector("#parent_last_name");
-            const emailInput = document.querySelector("#parent_email");
+        async function addParent(index, childrenIds) {
+            const firstNameInput = document.querySelector("#parent_first_name_" + index);
+            const lastNameInput = document.querySelector("#parent_last_name_" + index);
+            const emailInput = document.querySelector("#parent_email_" + index);
 
             const docRef = await addDoc(collection(db, "parents"), {
-                children: ["W6fI4gTbBJl0YAxeY8di"],
+                children: childrenIds,
                 first_name: firstNameInput.value,
                 last_name: lastNameInput.value,
                 email: emailInput.value,
                 created_at: serverTimestamp()
             });
 
-            document.getElementById("parent_title").innerHTML = "Added parent with id=" + docRef.id
+            const result = {
+                id: docRef.id,
+                email: emailInput.value
+            };
+
+            document.getElementById("children_title").innerHTML = "Added parent with id=" + docRef.id
             firstNameInput.value = "";
             lastNameInput.value = "";
+            emailInput.value = "";
 
-            return docRef.id;
+            return result;
         }
 
+        document.getElementById("register").addEventListener("click", registerUser, false);
+
         async function registerUser() {
-            const emailInput = document.querySelector("#parent_email");
+            const childrenIds = [];
+            for (let i = 0; i < childrenCounter; i++) {
+                const childrenId = await addChildren(i);
+                childrenIds.push(childrenId);
+            }
+
             const emailVerification = document.getElementById("email_verification");
             const registerTitle = document.getElementById("register_title");
             emailVerification.style.display = "none";
             registerTitle.style.display = "none";
 
-            const auth = getAuth();
-            auth.languageCode = 'ro';
-            createUserWithEmailAndPassword(auth, emailInput.value, "123456")
-                .then(async (userCredential) => {
-                    // Signed up
-                    const user = userCredential.user;
+            for (let j = 0; j < parentCounter; j++) {
+                const parent = await addParent(j, childrenIds);
 
-                    const parentId = await addParent();
+                const registerResult = await createUserWithoutLogin(parent.email, "123456");
 
+                if (registerResult) {
                     const docRef = await addDoc(collection(db, "users"), {
-                        auth_id: user.uid,
-                        email: emailInput.value,
-                        // user_type_id: userTypeInput.value
-                        user_type_id: "parent",
-                        user_id: parentId
+                        auth_id: registerResult.localId,
+                        email: parent.email,
+                        user_type: "parent",
+                        user_id: parent.id
                     });
 
                     registerTitle.style.display = "block";
                     registerTitle.innerHTML = "Registered user with id=" + docRef.id;
 
-                    sendEmailVerification(user)
-                        .then(async () => {
-                            emailVerification.style.display = "block";
-                        });
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    console.log("errorCode " + errorCode);
-                    console.log("message=" + errorMessage);
-                    handleRegisterError(errorCode);
-                });
+                    await sendEmailVerification(registerResult.idToken)
+                }
+            }
         }
 
         function handleRegisterError(errorCode) {
             switch (errorCode) {
                 case "auth/email-already-in-use":
-                    document.getElementById("parent_title").innerHTML = "Email is already in use!";
+                    document.getElementById("children_title").innerHTML = "Email is already in use!";
                     break;
             }
+        }
+
+        async function createUserWithoutLogin(email, password) {
+            const API_KEY = "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps";
+            const url = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + API_KEY;
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    clientType: "CLIENT_TYPE_WEB",
+                    returnSecureToken: false, // Prevents auto-login
+                }),
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            return data;
+        }
+
+        async function sendEmailVerification(idToken) {
+            const API_KEY = "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps";
+            const url = 'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=' + API_KEY;
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    idToken: idToken,
+                    clientType: "CLIENT_TYPE_WEB",
+                    requestType: "VERIFY_EMAIL",
+                }),
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            return data;
+        }
+
+        const querySnapshotClassActivity = await getDocs(collection(db, "class_activity"));
+        addNewChildrenInput();
+        document.getElementById("add_new_children").addEventListener("click", addNewChildrenInput, false);
+
+        function addNewChildrenInput() {
+            const childrenContainer = document.getElementById("children_container");
+
+            childrenContainer.insertAdjacentHTML('beforeend', "<label>Children " + childrenCounter + " First name");
+            childrenContainer.insertAdjacentHTML('beforeend', "<input type='text' id='children_first_name_" + childrenCounter + "'/><br />");
+
+            childrenContainer.insertAdjacentHTML('beforeend', "<label>Children " + childrenCounter + " Last name");
+            childrenContainer.insertAdjacentHTML('beforeend', "<input type='text' id='children_last_name_" + childrenCounter + "'/><br />");
+
+            childrenContainer.insertAdjacentHTML('beforeend', "<label>Children " + childrenCounter + " Gender");
+            childrenContainer.insertAdjacentHTML('beforeend', " <select name='children_gender_" + childrenCounter + "' id='children_gender_" + childrenCounter + "'/>")
+
+            const childrenGenderSelect = document.getElementById("children_gender_" + childrenCounter);
+            childrenGenderSelect.insertAdjacentHTML('beforeend', "<option value='male'>Male</option>");
+            childrenGenderSelect.insertAdjacentHTML('beforeend', "<option value='female'>Female</option>");
+            childrenContainer.insertAdjacentHTML('beforeend', "</select><br />");
+
+            childrenContainer.insertAdjacentHTML('beforeend', "<label>Children " + childrenCounter + " Age");
+            childrenContainer.insertAdjacentHTML('beforeend', "<input type='number' id='children_age_" + childrenCounter + "' min='1' max='99'/><br /><br />");
+
+            childrenContainer.insertAdjacentHTML('beforeend', "<div id='class_activities_form_container_" + childrenCounter + "'></div>");
+
+            const classActivitiesFormContainer = document.getElementById("class_activities_form_container_" + childrenCounter);
+            for (let classActivitiesDocument of querySnapshotClassActivity.docs) {
+                const data = classActivitiesDocument.data();
+
+                classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<input type="checkbox" id=children_class_activity_' + childrenCounter + ' name="children_class_activity_' + childrenCounter + '" value=' + classActivitiesDocument.id + '>');
+                classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<label for=' + classActivitiesDocument.id + '>' + data.name + ' - ' + data.day + ' - ' + data.time + '</label><br>');
+            }
+
+            childrenCounter += 1;
+        }
+
+        addNewParentInput();
+        document.getElementById("add_new_parent").addEventListener("click", addNewParentInput, false);
+
+        function addNewParentInput() {
+            const parentContainer = document.getElementById("parent_container");
+            parentContainer.insertAdjacentHTML('beforeend', "<label>Parent " + parentCounter + " First name");
+            parentContainer.insertAdjacentHTML('beforeend', "<input type='text' id='parent_first_name_" + parentCounter + "'><br />");
+
+            parentContainer.insertAdjacentHTML('beforeend', "<label>Parent " + parentCounter + " Last name");
+            parentContainer.insertAdjacentHTML('beforeend', "<input type='text' id='parent_last_name_" + parentCounter + "'><br />");
+
+            parentContainer.insertAdjacentHTML('beforeend', "<label>Parent " + parentCounter + " Email");
+            parentContainer.insertAdjacentHTML('beforeend', "<input type='text' id='parent_email_" + parentCounter + "'><br /><br />");
+
+            parentCounter += 1;
         }
     }
 </script>

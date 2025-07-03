@@ -72,11 +72,11 @@
 
                 const foundUsers = query(collection(db, "users"), where("user_id", "==", user.uid));
                 const querySnapshot = await getDocs(foundUsers);
-                const firstUser = querySnapshot.docs[0].data();
-                // const userTypeDocument = await getDoc(doc(db, "user_types", firstUser.user_type_id));
-                // var userTypeData = userTypeDocument.data();
 
-                if (firstUser.user_type_id == "parent") {
+                console.log(user.uid);
+                const firstUser = querySnapshot.docs[0].data();
+
+                if (firstUser.user_type == "parent") {
                     console.log("you are parent");
                     parentLoggedInContainer.style.display = "block";
 

@@ -99,6 +99,10 @@
         deleteDoc,
         serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        getAuth,
+        onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
     window.onload = async () => {
         // TODO: Add SDKs for Firebase products that you want to use
@@ -117,6 +121,24 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth();
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+
+                const foundUsers = query(collection(db, "users"), where("user_id", "==", user.uid));
+                const querySnapshot = await getDocs(foundUsers);
+                const firstUser = querySnapshot.docs[0].data();
+
+                if (firstUser.user_type == "parent") {
+                    console.log("you are parent");
+                }
+
+            } else {
+                // User is signed out
+            }
+        });
 
         const querySnapshotChildren = await getDocs(collection(db, "children"));
 
