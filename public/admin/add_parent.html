@@ -73,12 +73,12 @@
             if (user) {
                 // User is signed in, see docs for a list of available properties
 
-                const foundUsers = query(collection(db, "users"), where("user_id", "==", user.uid));
+                const foundUsers = query(collection(db, "users"), where("auth_id", "==", user.uid));
                 const querySnapshot = await getDocs(foundUsers);
                 const firstUser = querySnapshot.docs[0].data();
 
-                if (firstUser.user_type == "parent") {
-                    console.log("you are parent");
+                if (firstUser.user_type == "admin") {
+                    console.log("you are admin");
                 }
 
             } else {

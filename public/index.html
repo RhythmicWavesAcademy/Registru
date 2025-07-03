@@ -74,10 +74,8 @@
                     passwordInput.value = "";
 
                     if (user.emailVerified) { //This will return true or false
-                        console.log('email is verified')
                         navigate("parent");
                     } else {
-                        console.log('email not verified')
                         document.getElementById("login_title").innerHTML = "Please verify email!"
                     }
 

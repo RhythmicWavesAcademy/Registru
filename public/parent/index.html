@@ -10,6 +10,16 @@
 <div id="parent_logged_in_container" style="display: none;">
     <h1> Welcome parent </h1>
     <h1 id="reset_password"> Click here to reset password</h1>
+
+    <h1 id="your_children_title"> Your children </h1>
+    <form id="your_children_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <select name="children" id="children">
+                <option disabled selected value> -- select an option --</option>
+            </select><br/>
+        </div>
+    </form>
+    <div id="children_list"></div>
 </div>
 
 <div id="not_loggedIn_container" style="display: none;">
@@ -70,10 +80,8 @@
             if (user) {
                 // User is signed in, see docs for a list of available properties
 
-                const foundUsers = query(collection(db, "users"), where("user_id", "==", user.uid));
+                const foundUsers = query(collection(db, "users"), where("auth_id", "==", user.uid));
                 const querySnapshot = await getDocs(foundUsers);
-
-                console.log(user.uid);
                 const firstUser = querySnapshot.docs[0].data();
 
                 if (firstUser.user_type == "parent") {
@@ -94,7 +102,6 @@
 
         async function resetPassword(evt) {
             const userEmail = evt.currentTarget.userEmail;
-            console.log(userEmail)
             sendPasswordResetEmail(auth, userEmail)
                 .then(() => {
                     resetPasswordTitle.innerHTML = "Password reset sent";
