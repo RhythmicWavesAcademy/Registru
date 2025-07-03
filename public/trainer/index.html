@@ -62,7 +62,6 @@
 
         const foundActivityByTrainer = query(collection(db, "class_activity"), where("trainer_id", "==", "tG7dgusxhbPzvCBqFSrE"));
         const querySnapshot = await getDocs(foundActivityByTrainer);
-        const querySnapshotData = querySnapshot.docs;
         var classActivityElement = document.getElementById("class_activity");
 
         for (let classActivityDocument of querySnapshot.docs) {
@@ -72,7 +71,6 @@
                 classActivityElement.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + ' ' + data.time + '</option>');
             }
         }
-        ;
 
         document.getElementById("class_activity").addEventListener("change", listChildrenByActivity, false);
 

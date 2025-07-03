@@ -8,7 +8,7 @@
 <body>
 
 <div id="parent_logged_in_container" style="display: none;">
-    <h1> Welcome parent </h1>
+    <h1 id="parent_title"> Welcome parent </h1>
     <h1 id="reset_password"> Click here to reset password</h1>
 
     <h1 id="your_children_title"> Your children </h1>
@@ -19,7 +19,7 @@
             </select><br/>
         </div>
     </form>
-    <div id="children_list"></div>
+    <div id="children_info"></div>
 </div>
 
 <div id="not_loggedIn_container" style="display: none;">
@@ -41,7 +41,8 @@
         serverTimestamp,
         orderBy,
         limit,
-        updateDoc
+        updateDoc,
+        documentId
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
     import {
         getAuth,
@@ -90,6 +91,14 @@
 
                     resetPasswordTitle.addEventListener("click", resetPassword, false);
                     resetPasswordTitle.userEmail = user.email;
+
+                    const foundParent = query(collection(db, "parents"), where(documentId(), "==", firstUser.user_id));
+                    const querySnapshotParent = await getDocs(foundParent);
+                    const firstParent = querySnapshotParent.docs[0].data();
+
+                    document.getElementById("parent_title").innerHTML = "Welcome " + firstParent.first_name + " " + firstParent.last_name;
+
+                    listChildrenByParent(user.email);
                 } else {
                     notLoggedInContainer.style.display = "block";
                 }
@@ -112,6 +121,46 @@
                     console.log("errorCode " + errorCode);
                     console.log("message=" + errorMessage);
                 });
+        }
+
+        async function listChildrenByParent(email) {
+            const foundParent = query(collection(db, "parents"), where("email", "==", email));
+            const querySnapshot = await getDocs(foundParent);
+            const childrenElement = document.getElementById("children");
+            const firstParent = querySnapshot.docs[0].data();
+
+            for (let childId of firstParent.children) {
+                const foundChildren = query(collection(db, "children"), where(documentId(), "==", childId));
+                const querySnapshotChildren = await getDocs(foundChildren);
+
+                for (let childrenDocument of querySnapshotChildren.docs) {
+                    const data = childrenDocument.data();
+                    childrenElement.insertAdjacentHTML('beforeend', '<option value=' + childrenDocument.id + '>' + data.first_name + ' ' + data.last_name + '</option>');
+                }
+            }
+        }
+
+        document.getElementById("children").addEventListener("change", listChildrenInfo, false);
+
+        async function listChildrenInfo() {
+            const childrenInfoElement = document.getElementById("children_info");
+            childrenInfoElement.innerHTML = "";
+
+            const childId = document.getElementById("children").value;
+            const foundChildren = query(collection(db, "children"), where(documentId(), "==", childId));
+            const querySnapshotChildren = await getDocs(foundChildren);
+
+            const firstChildren = querySnapshotChildren.docs[0].data();
+
+            for (let classActivityId of firstChildren.class_activities_id) {
+                const foundActivity = query(collection(db, "class_activity"), where(documentId(), "==", classActivityId));
+                const querySnapshotClassActivity = await getDocs(foundActivity);
+
+                for(let classActivityDocument of querySnapshotClassActivity.docs){
+                    const classActivityData = classActivityDocument.data();
+                    childrenInfoElement.insertAdjacentHTML('beforeend', '<p>' + classActivityData.name + ' ' + classActivityData.day + ' ' + classActivityData.time + '</p>');
+                }
+            }
         }
     }
 </script>
