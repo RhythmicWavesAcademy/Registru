@@ -8,23 +8,29 @@
 </head>
 <body>
 
-<h2 id="children_title"> Add parents and children </h2>
-<form id="children_form" action="javascript:void(0);" method="post">
-    <div class="form-group">
+<div id="not_loggedIn_container" style="display: none;">
+    <h1> Not logged in</h1>
+    <h2> Please <a href="../index.html">log in</a></h2>
+</div>
 
-        <p>Add new children <span class="material-icons" id="add_new_children">add</span></p>
-        <div id="children_container"></div>
+<div id="admin_logged_in_container" style="display: none;">
+    <h2 id="children_title"> Add parents and children </h2>
+    <form id="children_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
 
-        <p>Add new parent <span class="material-icons" id="add_new_parent">add</span></p>
-        <div id="parent_container"></div>
-    </div>
+            <p>Add new children <span class="material-icons" id="add_new_children">add</span></p>
+            <div id="children_container"></div>
 
-    <input type="submit" id="register" value="Register">
-</form>
+            <p>Add new parent <span class="material-icons" id="add_new_parent">add</span></p>
+            <div id="parent_container"></div>
+        </div>
 
-<h1 id="register_title" style="display:none;"> Register </h1>
-<h1 id="email_verification" style="display: none;">Email validation sent</h1>
+        <input type="submit" id="register" value="Register">
+    </form>
 
+    <h1 id="register_title" style="display:none;"> Register </h1>
+    <h1 id="email_verification" style="display: none;">Email validation sent</h1>
+</div>
 
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
@@ -32,12 +38,9 @@
     import {
         collection,
         getDocs,
-        doc,
-        getDoc,
         query,
         where,
         addDoc,
-        deleteDoc,
         serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
 
@@ -67,7 +70,9 @@
         var childrenCounter = 0;
 
         const auth = getAuth(app);
-        auth.languageCode = 'ro';
+
+        const adminLoggedInContainer = document.getElementById("admin_logged_in_container");
+        const notLoggedInContainer = document.getElementById("not_loggedIn_container");
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -78,13 +83,25 @@
                 const firstUser = querySnapshot.docs[0].data();
 
                 if (firstUser.user_type == "admin") {
-                    console.log("you are admin");
+                    adminLoggedInContainer.style.display = "block";
+                    await onAdminAuthenticated();
+                } else {
+                    notLoggedInContainer.style.display = "block";
                 }
 
             } else {
                 // User is signed out
+                notLoggedInContainer.style.display = "block";
             }
         });
+
+        async function onAdminAuthenticated() {
+            addNewChildrenInput();
+            addNewParentInput();
+
+            document.getElementById("add_new_children").addEventListener("click", addNewChildrenInput, false);
+            document.getElementById("add_new_parent").addEventListener("click", addNewParentInput, false);
+        }
 
         async function addChildren(index) {
             const firstNameInput = document.querySelector("#children_first_name_" + index);
@@ -239,11 +256,8 @@
             return data;
         }
 
-        const querySnapshotClassActivity = await getDocs(collection(db, "class_activity"));
-        addNewChildrenInput();
-        document.getElementById("add_new_children").addEventListener("click", addNewChildrenInput, false);
-
-        function addNewChildrenInput() {
+        async function addNewChildrenInput() {
+            const querySnapshotClassActivity = await getDocs(collection(db, "class_activity"));
             const childrenContainer = document.getElementById("children_container");
 
             childrenContainer.insertAdjacentHTML('beforeend', "<label>Children " + childrenCounter + " First name");
@@ -275,9 +289,6 @@
 
             childrenCounter += 1;
         }
-
-        addNewParentInput();
-        document.getElementById("add_new_parent").addEventListener("click", addNewParentInput, false);
 
         function addNewParentInput() {
             const parentContainer = document.getElementById("parent_container");

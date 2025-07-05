@@ -32,23 +32,12 @@
     import {
         collection,
         getDocs,
-        doc,
-        getDoc,
         query,
         where,
-        addDoc,
-        deleteDoc,
-        serverTimestamp,
-        orderBy,
-        limit,
-        updateDoc,
         documentId
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
     import {
         getAuth,
-        isSignInWithEmailLink,
-        signInWithEmailLink,
-        getAdditionalUserInfo,
         sendPasswordResetEmail,
         onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
@@ -69,9 +58,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
         const auth = getAuth();
-        auth.languageCode = 'ro';
 
         const resetPasswordTitle = document.getElementById("reset_password");
         const parentLoggedInContainer = document.getElementById("parent_logged_in_container");
@@ -98,7 +85,7 @@
 
                     document.getElementById("parent_title").innerHTML = "Welcome " + firstParent.first_name + " " + firstParent.last_name;
 
-                    listChildrenByParent(user.email);
+                    await listChildrenByParent(user.email);
                 } else {
                     notLoggedInContainer.style.display = "block";
                 }

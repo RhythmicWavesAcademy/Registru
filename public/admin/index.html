@@ -7,83 +7,92 @@
     <title>Admin Dashboard</title>
 </head>
 <body>
-<h1 id="admin_title"> Welcome admin </h1>
 
-<h2 id="test"><a href="add_parent.html">Add parent and children</a></h2>
+<div id="not_loggedIn_container" style="display: none;">
+    <h1> Not logged in</h1>
+    <h2> Please <a href="../index.html">log in</a></h2>
+</div>
 
-<h2 id="trainer_title"> Add trainer </h2>
-<form id="trainer_form" action="javascript:void(0);" method="post">
-    <div class="form-group">
-        <label>First Name</label>
-        <input type="text" id="trainer_first_name"></br>
-        <label>Last Name</label>
-        <input type="text" id="trainer_last_name"></br>
+<div id="admin_logged_in_container" style="display: none;">
+    <h1 id="admin_title"> Welcome admin </h1>
+    <button id="sign_out"> Sign out</button>
 
-        <input type="submit" value="Add trainer" id="submit_trainer">
-    </div>
-</form>
+    <h2 id="test"><a href="add_parent.html">Add parent and children</a></h2>
 
-<h2 id="class_activity_title"> Add class activity </h2>
-<form id="class_activity_form" action="javascript:void(0);" method="post">
-    <div class="form-group">
-        <label>Name</label>
-        <input type="text" id="class_activity_name"><br/>
-        <label>Attendance day </label>
-        <select name="class_activity_attendance_day" id="class_activity_attendance_day">
-            <option value="Monday">Monday</option>
-            <option value="Tuesday">Tuesday</option>
-            <option value="Wedneday">Wednesday</option>
-            <option value="Thursday">Thursday</option>
-            <option value="Friday">Friday</option>
-            <option value="Saturday">Saturday</option>
-            <option value="Sunday">Sunday</option>
-        </select><br/>
-        <label>Lesson per billing cycle</label>
-        <input type="number" id="class_activity_lesson_billing_cycle" min="1" max="60"></br>
+    <h2 id="trainer_title"> Add trainer </h2>
+    <form id="trainer_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="trainer_first_name"></br>
+            <label>Last Name</label>
+            <input type="text" id="trainer_last_name"></br>
 
-        <label for="class_activity_attendance_time">Time:</label>
-        <input id="class_activity_attendance_time" type="time" name="class_activity_attendance_time" min="07:00"
-               max="21:00"/>
-        <select name="activity_trainer" id="activity_trainer"></select></br />
+            <input type="submit" value="Add trainer" id="submit_trainer">
+        </div>
+    </form>
 
-        <input type="submit" value="Add class activity" id="submit_class_activity">
-    </div>
-</form>
+    <h2 id="class_activity_title"> Add class activity </h2>
+    <form id="class_activity_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="class_activity_name"><br/>
+            <label>Attendance day </label>
+            <select name="class_activity_attendance_day" id="class_activity_attendance_day">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wedneday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+            </select><br/>
+            <label>Lesson per billing cycle</label>
+            <input type="number" id="class_activity_lesson_billing_cycle" min="1" max="60"></br>
 
-<h2 id="class_attendance_title"> Add class attendance </h2>
-<form id="trainer_form" action="javascript:void(0);" method="post">
-    <div class="form-group">
-        <label>Children Name</label>
-        <select name="children_attendance_children_id" id="children_attendance_children_id"></select><br/>
-        <label>Class activity</label>
-        <select name="children_attendance_class_activity" id="children_attendance_class_activity"></select><br/>
-        <label for="children_attendance_present">Is present?</label>
-        <input type="radio" id="children_attendance_present" name="children_attendance_present" value="true"><br/>
-        <label for="children_attendance_datetime">Attendance date</label>
-        <input type="datetime-local" id="children_attendance_datetime" name="children_attendance_datetime"><br/>
-        <input type="radio" id="children_attendance_should_pay" name="children_attendance_should_pay" value="true"><br/>
+            <label for="class_activity_attendance_time">Time:</label>
+            <input id="class_activity_attendance_time" type="time" name="class_activity_attendance_time" min="07:00"
+                   max="21:00"/>
+            <select name="activity_trainer" id="activity_trainer"></select></br />
 
-        <input type="submit" value="Add class attendance" id="submit_class_attendance">
-    </div>
-</form>
+            <input type="submit" value="Add class activity" id="submit_class_activity">
+        </div>
+    </form>
 
-<h2> Children </h2>
-<div id="children"></div>
+    <h2 id="class_attendance_title"> Add class attendance </h2>
+    <form id="trainer_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <label>Children Name</label>
+            <select name="children_attendance_children_id" id="children_attendance_children_id"></select><br/>
+            <label>Class activity</label>
+            <select name="children_attendance_class_activity" id="children_attendance_class_activity"></select><br/>
+            <label for="children_attendance_present">Is present?</label>
+            <input type="radio" id="children_attendance_present" name="children_attendance_present" value="true"><br/>
+            <label for="children_attendance_datetime">Attendance date</label>
+            <input type="datetime-local" id="children_attendance_datetime" name="children_attendance_datetime"><br/>
+            <input type="radio" id="children_attendance_should_pay" name="children_attendance_should_pay"
+                   value="true"><br/>
 
-<h2> Parents </h2>
-<div id="parents"></div>
+            <input type="submit" value="Add class attendance" id="submit_class_attendance">
+        </div>
+    </form>
 
-<h2> Trainers </h2>
-<div id="trainers"></div>
+    <h2> Children </h2>
+    <div id="children"></div>
 
-<h2> Class activities </h2>
-<div id="class_activities"></div>
+    <h2> Parents </h2>
+    <div id="parents"></div>
 
-<h2 id="attendances_list_title"> Attendances </h2>
-<div id="class_attendances"></div>
+    <h2> Trainers </h2>
+    <div id="trainers"></div>
+
+    <h2> Class activities </h2>
+    <div id="class_activities"></div>
+
+    <h2 id="attendances_list_title"> Attendances </h2>
+    <div id="class_attendances"></div>
+</div>
 
 <script type="module">
-    //todo -- add children to parent when inserting - remove hardcoded id
     // update / delete entries
 
     import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
@@ -101,7 +110,8 @@
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
     import {
         getAuth,
-        onAuthStateChanged
+        onAuthStateChanged,
+        signOut
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
     window.onload = async () => {
@@ -123,6 +133,9 @@
         const db = getFirestore(app);
         const auth = getAuth();
 
+        const adminLoggedInContainer = document.getElementById("admin_logged_in_container");
+        const notLoggedInContainer = document.getElementById("not_loggedIn_container");
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 // User is signed in, see docs for a list of available properties
@@ -132,98 +145,136 @@
                 const firstUser = querySnapshot.docs[0].data();
 
                 if (firstUser.user_type == "admin") {
-                    console.log("you are admin");
+                    adminLoggedInContainer.style.display = "block";
+                    await onAdminAuthenticated();
+                } else {
+                    notLoggedInContainer.style.display = "block";
                 }
-
             } else {
                 // User is signed out
+                notLoggedInContainer.style.display = "block";
             }
         });
 
-        const querySnapshotChildren = await getDocs(collection(db, "children"));
+        async function onAdminAuthenticated() {
 
-        for (let childrenDocument of querySnapshotChildren.docs) {
-            var childrenElement = document.getElementById("children");
-            var data = childrenDocument.data();
 
-            childrenElement.insertAdjacentHTML('beforeend', childrenDocument.id + "<br/>");
-            childrenElement.insertAdjacentHTML('beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>");
-            childrenElement.insertAdjacentHTML('beforeend', "age:" + data.age + "<br/>");
-            childrenElement.insertAdjacentHTML('beforeend', "gender:" + data.gender + "<br/>");
+            document.getElementById("sign_out").addEventListener("click", signOutUser, false);
 
-            childrenElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
+            const querySnapshotChildren = await getDocs(collection(db, "children"));
+
+            for (let childrenDocument of querySnapshotChildren.docs) {
+                var childrenElement = document.getElementById("children");
+                var data = childrenDocument.data();
+
+                childrenElement.insertAdjacentHTML('beforeend', childrenDocument.id + "<br/>");
+                childrenElement.insertAdjacentHTML('beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>");
+                childrenElement.insertAdjacentHTML('beforeend', "age:" + data.age + "<br/>");
+                childrenElement.insertAdjacentHTML('beforeend', "gender:" + data.gender + "<br/>");
+
+                childrenElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
+            }
+
+            const querySnapshotParents = await getDocs(collection(db, "parents"));
+            for (let parentDocument of querySnapshotParents.docs) {
+                var parentElement = document.getElementById("parents");
+                var data = parentDocument.data();
+                const childrenDocument = data.children[0];
+                // document.getElementById("parents_children").innerHTML = doc.id;
+                parentElement.insertAdjacentHTML('beforeend', parentDocument.id + "<br/>");
+                parentElement.insertAdjacentHTML('beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>");
+                parentElement.insertAdjacentHTML('beforeend', "childrenId:" + childrenDocument + "<br/>");
+
+
+                parentElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
+            }
+
+            const querySnapshotTrainers = await getDocs(collection(db, "trainers"));
+            for (let trainerDocument of querySnapshotTrainers.docs) {
+                var trainerElement = document.getElementById("trainers");
+                var data = trainerDocument.data();
+
+                trainerElement.insertAdjacentHTML('beforeend', trainerDocument.id + "<br/>");
+                trainerElement.insertAdjacentHTML('beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>");
+                trainerElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
+            }
+
+            const querySnapshotClassActivity = await getDocs(collection(db, "class_activity"));
+            for (let classActivityDocument of querySnapshotClassActivity.docs) {
+                var classActivityElement = document.getElementById("class_activities");
+                var data = classActivityDocument.data();
+
+                classActivityElement.insertAdjacentHTML('beforeend', classActivityDocument.id + "<br/>");
+                classActivityElement.insertAdjacentHTML('beforeend', "name:" + data.name + "<br/>");
+
+                const trainerDocument = await getDoc(doc(db, "trainers", data.trainer_id));
+                var trainerData = trainerDocument.data();
+
+                classActivityElement.insertAdjacentHTML('beforeend', "trainerId:" + data.trainer_id + " name:" + trainerData.first_name + " " + trainerData.last_name + "<br/>");
+                classActivityElement.insertAdjacentHTML('beforeend', "day:" + data.day + "<br/>");
+                classActivityElement.insertAdjacentHTML('beforeend', "time:" + data.time + "<br/>");
+
+
+                classActivityElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
+            }
+
+            const querySnapshotClassAttendance = await getDocs(collection(db, "attendance"));
+
+            for (let classAttendanceDocument of querySnapshotClassAttendance.docs) {
+                var classAttendanceElement = document.getElementById("class_attendances");
+                var data = classAttendanceDocument.data();
+                const childrenDocument = await getDoc(doc(db, "children", data.children_id));
+                var childrenData = childrenDocument.data();
+
+                const classActivityDocument = await getDoc(doc(db, "class_activity", data.class_activity_id));
+                var classActivityData = classActivityDocument.data();
+
+                classAttendanceElement.insertAdjacentHTML('beforeend', classAttendanceDocument.id + "<br/>");
+                classAttendanceElement.insertAdjacentHTML('beforeend', "date:" + data.present_at + "<br/>");
+                classAttendanceElement.insertAdjacentHTML('beforeend', "isPresent?:" + data.is_present + "<br/>");
+                classAttendanceElement.insertAdjacentHTML('beforeend', "chlidrenId:" + data.children_id + " name:" + childrenData.first_name + " " + childrenData.last_name + "<br/>");
+                classAttendanceElement.insertAdjacentHTML('beforeend', "classActivityId:" + data.class_activity_id + " name:" + classActivityData.name + "<br/>");
+
+                classAttendanceElement.insertAdjacentHTML('beforeend', '<span id=' + classAttendanceDocument.id + ' class="material-icons">delete</span>' + "<br/>");
+
+                var classAttendanceSpan = document.getElementById(classAttendanceDocument.id);
+                classAttendanceSpan.addEventListener("click", deleteClassAttendance, false);
+                classAttendanceSpan.attendanceId = classAttendanceDocument.id;
+
+                classAttendanceElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
+            }
+
+            document.getElementById("submit_trainer").addEventListener("click", addTrainer, false);
+
+            //populate class activity trainer section
+            var trainerElementActivities = document.getElementsByName("activity_trainer");
+
+            for (let i = 0; i < trainerElementActivities.length; i++) {
+                for (let trainerDocument2 of querySnapshotTrainers.docs) {
+                    var data = trainerDocument2.data();
+
+                    var option = document.createElement("option");
+                    option.text = data.first_name + " " + data.last_name;
+                    option.value = trainerDocument2.id;
+                    trainerElementActivities[i].add(option);
+                }
+            }
+
+            //populate class attendance with children and class activities
+            var attendanceChildrenId = document.getElementById("children_attendance_children_id");
+            for (let childrenDocument of querySnapshotChildren.docs) {
+                var data = childrenDocument.data();
+
+                attendanceChildrenId.insertAdjacentHTML('beforeend', '<option value=' + childrenDocument.id + '>' + data.first_name + " " + data.last_name + '</option>');
+            }
+
+            var attendanceClassActivity = document.getElementById("children_attendance_class_activity");
+            for (let classActivityDocument of querySnapshotClassActivity.docs) {
+                var data = classActivityDocument.data();
+
+                attendanceClassActivity.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + '</option>');
+            }
         }
-
-        const querySnapshotParents = await getDocs(collection(db, "parents"));
-        for (let parentDocument of querySnapshotParents.docs) {
-            var parentElement = document.getElementById("parents");
-            var data = parentDocument.data();
-            const childrenDocument = data.children[0];
-            // document.getElementById("parents_children").innerHTML = doc.id;
-            parentElement.insertAdjacentHTML('beforeend', parentDocument.id + "<br/>");
-            parentElement.insertAdjacentHTML('beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>");
-            parentElement.insertAdjacentHTML('beforeend', "childrenId:" + childrenDocument + "<br/>");
-
-
-            parentElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
-        }
-
-        const querySnapshotTrainers = await getDocs(collection(db, "trainers"));
-        for (let trainerDocument of querySnapshotTrainers.docs) {
-            var trainerElement = document.getElementById("trainers");
-            var data = trainerDocument.data();
-
-            trainerElement.insertAdjacentHTML('beforeend', trainerDocument.id + "<br/>");
-            trainerElement.insertAdjacentHTML('beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>");
-            trainerElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
-        }
-
-        const querySnapshotClassActivity = await getDocs(collection(db, "class_activity"));
-        for (let classActivityDocument of querySnapshotClassActivity.docs) {
-            var classActivityElement = document.getElementById("class_activities");
-            var data = classActivityDocument.data();
-
-            classActivityElement.insertAdjacentHTML('beforeend', classActivityDocument.id + "<br/>");
-            classActivityElement.insertAdjacentHTML('beforeend', "name:" + data.name + "<br/>");
-
-            const trainerDocument = await getDoc(doc(db, "trainers", data.trainer_id));
-            var trainerData = trainerDocument.data();
-
-            classActivityElement.insertAdjacentHTML('beforeend', "trainerId:" + data.trainer_id + " name:" + trainerData.first_name + " " + trainerData.last_name + "<br/>");
-            classActivityElement.insertAdjacentHTML('beforeend', "day:" + data.day + "<br/>");
-            classActivityElement.insertAdjacentHTML('beforeend', "time:" + data.time + "<br/>");
-
-
-            classActivityElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
-        }
-
-        const querySnapshotClassAttendance = await getDocs(collection(db, "attendance"));
-
-        for (let classAttendanceDocument of querySnapshotClassAttendance.docs) {
-            var classAttendanceElement = document.getElementById("class_attendances");
-            var data = classAttendanceDocument.data();
-            const childrenDocument = await getDoc(doc(db, "children", data.children_id));
-            var childrenData = childrenDocument.data();
-
-            const classActivityDocument = await getDoc(doc(db, "class_activity", data.class_activity_id));
-            var classActivityData = classActivityDocument.data();
-
-            classAttendanceElement.insertAdjacentHTML('beforeend', classAttendanceDocument.id + "<br/>");
-            classAttendanceElement.insertAdjacentHTML('beforeend', "date:" + data.present_at + "<br/>");
-            classAttendanceElement.insertAdjacentHTML('beforeend', "isPresent?:" + data.is_present + "<br/>");
-            classAttendanceElement.insertAdjacentHTML('beforeend', "chlidrenId:" + data.children_id + " name:" + childrenData.first_name + " " + childrenData.last_name + "<br/>");
-            classAttendanceElement.insertAdjacentHTML('beforeend', "classActivityId:" + data.class_activity_id + " name:" + classActivityData.name + "<br/>");
-
-            classAttendanceElement.insertAdjacentHTML('beforeend', '<span id=' + classAttendanceDocument.id + ' class="material-icons">delete</span>' + "<br/>");
-
-            var classAttendanceSpan = document.getElementById(classAttendanceDocument.id);
-            classAttendanceSpan.addEventListener("click", deleteClassAttendance, false);
-            classAttendanceSpan.attendanceId = classAttendanceDocument.id;
-
-            classAttendanceElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
-        }
-
-        document.getElementById("submit_trainer").addEventListener("click", addTrainer, false);
 
         async function addTrainer() {
             const firstNameInput = document.querySelector("#trainer_first_name");
@@ -262,20 +313,6 @@
             nameInput.value = "";
         }
 
-        //populate class activity trainer section
-        var trainerElementActivities = document.getElementsByName("activity_trainer");
-
-        for (let i = 0; i < trainerElementActivities.length; i++) {
-            for (let trainerDocument2 of querySnapshotTrainers.docs) {
-                var data = trainerDocument2.data();
-
-                var option = document.createElement("option");
-                option.text = data.first_name + " " + data.last_name;
-                option.value = trainerDocument2.id;
-                trainerElementActivities[i].add(option);
-            }
-        }
-
         function toLocalISOString(date) {
             const localDate = new Date(date - date.getTimezoneOffset() * 60000);
             localDate.setSeconds(null);
@@ -284,21 +321,6 @@
         }
 
         document.getElementById('children_attendance_datetime').value = toLocalISOString(new Date());
-
-        //populate class attendance with children and class activities
-        var attendanceChildrenId = document.getElementById("children_attendance_children_id");
-        for (let childrenDocument of querySnapshotChildren.docs) {
-            var data = childrenDocument.data();
-
-            attendanceChildrenId.insertAdjacentHTML('beforeend', '<option value=' + childrenDocument.id + '>' + data.first_name + " " + data.last_name + '</option>');
-        }
-
-        var attendanceClassActivity = document.getElementById("children_attendance_class_activity");
-        for (let classActivityDocument of querySnapshotClassActivity.docs) {
-            var data = classActivityDocument.data();
-
-            attendanceClassActivity.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + '</option>');
-        }
 
         document.getElementById("submit_class_attendance").addEventListener("click", addClassAttendance, false);
 
@@ -327,10 +349,17 @@
         }
 
         async function deleteClassAttendance(evt) {
-            var attendanceId = evt.currentTarget.attendanceId;
+            const attendanceId = evt.currentTarget.attendanceId;
             await deleteDoc(doc(db, "attendance", attendanceId));
             document.getElementById("attendances_list_title").innerHTML = "Removed class attendance with id=" + attendanceId;
+        }
 
+        async function signOutUser() {
+            await signOut(auth).then(() => {
+                window.location.href = "../index.html";
+            }).catch((error) => {
+                // An error happened.
+            });
         }
     }
 </script>

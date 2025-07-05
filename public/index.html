@@ -26,20 +26,12 @@
     import {
         collection,
         getDocs,
-        doc,
-        getDoc,
-        addDoc,
         query,
         where
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
     import {
         getAuth,
-        createUserWithEmailAndPassword,
         signInWithEmailAndPassword,
-        sendEmailVerification,
-        sendSignInLinkToEmail,
-        getAdditionalUserInfo,
-        sendPasswordResetEmail
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
     window.onload = async () => {
