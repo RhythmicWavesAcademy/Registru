@@ -6,7 +6,6 @@
     <title>Test</title>
 </head>
 <body>
-<a href="admin/dashboard.html">To admin</a>
 
 <h1 id="login_title"> Login </h1>
 <form id="login_form" action="javascript:void(0);" method="post">
@@ -73,20 +72,14 @@
                     emailInput.value = "";
                     passwordInput.value = "";
 
-                    if (user.emailVerified) { //This will return true or false
-                        navigate("parent");
+                    if (user.emailVerified) {
+                        const foundUsers = query(collection(db, "users"), where("auth_id", "==", user.uid));
+                        const querySnapshot = await getDocs(foundUsers);
+                        const firstUser = querySnapshot.docs[0].data();
+                        navigate(firstUser.user_type);
                     } else {
                         document.getElementById("login_title").innerHTML = "Please verify email!"
                     }
-
-                    // const foundUsers = query(collection(db, "users"), where("user_id", "==", user.uid));
-                    // const querySnapshot = await getDocs(foundUsers);
-                    // const firstUser = querySnapshot.docs[0].data();
-                    // const userTypeDocument = await getDoc(doc(db, "user_types", firstUser.user_type_id));
-                    // var userTypeData = userTypeDocument.data();
-
-                    // navigate(userTypeData.name);
-                    // navigate("parent");
                 })
                 .catch((error) => {
                     const errorCode = error.code;
@@ -111,6 +104,10 @@
 
         function navigate(userTypeText) {
             switch (userTypeText) {
+                case "admin":
+                    window.location.href = "admin/index.html";
+                    break;
+
                 case "trainer":
                     window.location.href = "trainer/index.html";
                     break;
