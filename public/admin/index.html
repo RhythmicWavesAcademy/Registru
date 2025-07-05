@@ -157,8 +157,6 @@
         });
 
         async function onAdminAuthenticated() {
-
-
             document.getElementById("sign_out").addEventListener("click", signOutUser, false);
 
             const querySnapshotChildren = await getDocs(collection(db, "children"));

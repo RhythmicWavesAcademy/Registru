@@ -9,6 +9,7 @@
 
 <div id="parent_logged_in_container" style="display: none;">
     <h1 id="parent_title"> Welcome parent </h1>
+    <button id="sign_out"> Sign out</button>
     <h1 id="reset_password"> Click here to reset password</h1>
 
     <h1 id="your_children_title"> Your children </h1>
@@ -39,7 +40,8 @@
     import {
         getAuth,
         sendPasswordResetEmail,
-        onAuthStateChanged
+        onAuthStateChanged,
+        signOut
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
     window.onload = async () => {
@@ -73,19 +75,8 @@
                 const firstUser = querySnapshot.docs[0].data();
 
                 if (firstUser.user_type == "parent") {
-                    console.log("you are parent");
                     parentLoggedInContainer.style.display = "block";
-
-                    resetPasswordTitle.addEventListener("click", resetPassword, false);
-                    resetPasswordTitle.userEmail = user.email;
-
-                    const foundParent = query(collection(db, "parents"), where(documentId(), "==", firstUser.user_id));
-                    const querySnapshotParent = await getDocs(foundParent);
-                    const firstParent = querySnapshotParent.docs[0].data();
-
-                    document.getElementById("parent_title").innerHTML = "Welcome " + firstParent.first_name + " " + firstParent.last_name;
-
-                    await listChildrenByParent(user.email);
+                    await onParentAuthenticated(user.email, firstUser.user_id);
                 } else {
                     notLoggedInContainer.style.display = "block";
                 }
@@ -95,6 +86,21 @@
                 notLoggedInContainer.style.display = "block";
             }
         });
+
+        async function onParentAuthenticated(parentEmail, parentId) {
+            document.getElementById("sign_out").addEventListener("click", signOutUser, false);
+
+            resetPasswordTitle.addEventListener("click", resetPassword, false);
+            resetPasswordTitle.userEmail = parentEmail;
+
+            const foundParent = query(collection(db, "parents"), where(documentId(), "==", parentId));
+            const querySnapshotParent = await getDocs(foundParent);
+            const firstParent = querySnapshotParent.docs[0].data();
+
+            document.getElementById("parent_title").innerHTML = "Welcome " + firstParent.first_name + " " + firstParent.last_name;
+
+            await listChildrenByParent(parentEmail);
+        }
 
         async function resetPassword(evt) {
             const userEmail = evt.currentTarget.userEmail;
@@ -143,11 +149,19 @@
                 const foundActivity = query(collection(db, "class_activity"), where(documentId(), "==", classActivityId));
                 const querySnapshotClassActivity = await getDocs(foundActivity);
 
-                for(let classActivityDocument of querySnapshotClassActivity.docs){
+                for (let classActivityDocument of querySnapshotClassActivity.docs) {
                     const classActivityData = classActivityDocument.data();
                     childrenInfoElement.insertAdjacentHTML('beforeend', '<p>' + classActivityData.name + ' ' + classActivityData.day + ' ' + classActivityData.time + '</p>');
                 }
             }
+        }
+
+        async function signOutUser() {
+            await signOut(auth).then(() => {
+                window.location.href = "../index.html";
+            }).catch((error) => {
+                // An error happened.
+            });
         }
     }
 </script>
