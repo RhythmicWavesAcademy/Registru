@@ -9,15 +9,22 @@
 <body>
 <h1> Welcome trainer </h1>
 
-<h1 id="classes_today_title"> Classes today </h1>
-<form id="class_activity_form" action="javascript:void(0);" method="post">
-    <div class="form-group">
-        <select name="class_activity" id="class_activity">
-            <option disabled selected value> -- select an option --</option>
-        </select><br/>
-    </div>
-</form>
-<div id="children_list"></div>
+<div id="trainer_logged_in_container">
+    <h1 id="classes_today_title"> Classes today </h1>
+    <form id="class_activity_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <select name="class_activity" id="class_activity">
+                <option disabled selected value> -- select an option --</option>
+            </select><br/>
+        </div>
+    </form>
+    <div id="children_list"></div>
+</div>
+
+<div id="not_loggedIn_container" style="display: none;">
+    <h1> Not logged in</h1>
+    <h2> Please <a href="../index.html">log in</a></h2>
+</div>
 
 <script type="module">
     //todo -- add children to parent when inserting - remove hardcoded id
@@ -38,8 +45,15 @@
         serverTimestamp,
         orderBy,
         limit,
-        updateDoc
+        updateDoc,
+        documentId
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        getAuth,
+        sendPasswordResetEmail,
+        onAuthStateChanged,
+        signOut
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
     window.onload = async () => {
         // TODO: Add SDKs for Firebase products that you want to use
@@ -57,22 +71,56 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth();
 
-        const currentDay = new Date().toLocaleString('en-us', {weekday: 'long'});
+        const trainerLoggedInContainer = document.getElementById("trainer_logged_in_container");
+        const notLoggedInContainer = document.getElementById("not_loggedIn_container");
 
-        const foundActivityByTrainer = query(collection(db, "class_activity"), where("trainer_id", "==", "tG7dgusxhbPzvCBqFSrE"));
-        const querySnapshot = await getDocs(foundActivityByTrainer);
-        var classActivityElement = document.getElementById("class_activity");
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
 
-        for (let classActivityDocument of querySnapshot.docs) {
-            var data = classActivityDocument.data();
+                const foundUsers = query(collection(db, "users"), where("auth_id", "==", user.uid));
+                const querySnapshot = await getDocs(foundUsers);
+                const firstUser = querySnapshot.docs[0].data();
 
-            if (data.day == currentDay) {
-                classActivityElement.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + ' ' + data.time + '</option>');
+                if (firstUser.user_type == "trainer") {
+                    trainerLoggedInContainer.style.display = "block";
+                    await onTrainerAuthenticated(firstUser.email);
+                } else {
+                    notLoggedInContainer.style.display = "block";
+                }
+
+            } else {
+                // User is signed out
+                notLoggedInContainer.style.display = "block";
             }
-        }
+        });
 
-        document.getElementById("class_activity").addEventListener("change", listChildrenByActivity, false);
+        async function onTrainerAuthenticated(email) {
+            const currentDay = new Date().toLocaleString('en-us', {weekday: 'long'});
+
+            const foundTrainers = query(collection(db, "trainers"), where("email", "==", email));
+            const querySnapshotTrainers = await getDocs(foundTrainers);
+            const firstTrainer = querySnapshotTrainers.docs[0].data();
+
+            const classActivityElement = document.getElementById("class_activity");
+
+            for (let classActivityId of firstTrainer.class_activities_id) {
+                const foundActivityByTrainer = query(collection(db, "class_activity"), where(documentId(), "==", classActivityId));
+                const querySnapshot = await getDocs(foundActivityByTrainer);
+
+                for (let classActivityDocument of querySnapshot.docs) {
+                    const data = classActivityDocument.data();
+
+                    if (data.day == currentDay) {
+                        classActivityElement.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + ' ' + data.time + '</option>');
+                    }
+                }
+            }
+
+            document.getElementById("class_activity").addEventListener("change", listChildrenByActivity, false);
+        }
 
         async function listChildrenByActivity() {
             const activityId = document.getElementById("class_activity").value;
@@ -130,7 +178,6 @@
                 classAttendanceSpanPresent.isPresent = false;
                 classAttendanceSpanPresent.date = toLocalISOString(new Date());
             }
-            ;
         }
 
         async function addClassAttendance(evt) {
