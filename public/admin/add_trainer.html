@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Add trainer</title>
+</head>
+<body>
+
+<div id="not_loggedIn_container" style="display: none;">
+    <h1> Not logged in</h1>
+    <h2> Please <a href="../index.html">log in</a></h2>
+</div>
+
+<div id="admin_logged_in_container" style="display: none;">
+    <h2 id="trainer_title"> Add trainer </h2>
+    <form id="trainer_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="trainer_first_name"></br>
+            <label>Last Name</label>
+            <input type="text" id="trainer_last_name"></br>
+            <label>Email</label>
+            <input type="text" id="trainer_email"></br>
+
+            <div id="class_activities_form_container"></div>
+
+            <input type="submit" id="register" value="Register">
+        </div>
+    </form>
+
+    <h1 id="register_title" style="display:none;"> Register </h1>
+    <h1 id="email_verification" style="display: none;">Email validation sent</h1>
+</div>
+
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        collection,
+        getDocs,
+        query,
+        where,
+        addDoc,
+        serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+
+    import {
+        getAuth,
+        onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    window.onload = async () => {
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
+            authDomain: "registru-d6b7b.firebaseapp.com",
+            projectId: "registru-d6b7b",
+            storageBucket: "registru-d6b7b.firebasestorage.app",
+            messagingSenderId: "914926288060",
+            appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
+            measurementId: "G-QSDZCKE9MR"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const adminLoggedInContainer = document.getElementById("admin_logged_in_container");
+        const notLoggedInContainer = document.getElementById("not_loggedIn_container");
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+
+                const foundUsers = query(collection(db, "users"), where("auth_id", "==", user.uid));
+                const querySnapshot = await getDocs(foundUsers);
+                const firstUser = querySnapshot.docs[0].data();
+
+                if (firstUser.user_type == "admin") {
+                    adminLoggedInContainer.style.display = "block";
+                    await onAdminAuthenticated();
+                } else {
+                    notLoggedInContainer.style.display = "block";
+                }
+
+            } else {
+                // User is signed out
+                notLoggedInContainer.style.display = "block";
+            }
+        });
+
+        async function onAdminAuthenticated() {
+            await addClassActivitiesInput();
+        }
+
+        async function addTrainer() {
+            const firstNameInput = document.querySelector("#trainer_first_name");
+            const lastNameInput = document.querySelector("#trainer_last_name");
+            const emailInput = document.querySelector("#trainer_email");
+
+            const classActivityCheckboxes = document.querySelectorAll('input[name^="trainer_class_activity"]:checked');
+            const checkedClassActivities = [];
+            for (let checkbox of classActivityCheckboxes) {
+                if (checkbox.checked) {
+                    checkedClassActivities.push(checkbox.value);
+                }
+            }
+
+            const docRef = await addDoc(collection(db, "trainers"), {
+                first_name: firstNameInput.value,
+                last_name: lastNameInput.value,
+                email: emailInput.value.toLowerCase(),
+                class_activities_id: checkedClassActivities,
+                created_at: serverTimestamp()
+            });
+
+            const result = {
+                id: docRef.id,
+                email: emailInput.value.toLowerCase()
+            };
+
+            document.getElementById("trainer_title").innerHTML = "Added trainer with id=" + docRef.id;
+
+            firstNameInput.value = "";
+            lastNameInput.value = "";
+            emailInput.value = "";
+            for (let checkbox of classActivityCheckboxes) {
+                checkbox.checked = false;
+            }
+
+            return result;
+        }
+
+        document.getElementById("register").addEventListener("click", registerUser, false);
+
+        async function registerUser() {
+            const trainer = await addTrainer();
+
+            const emailVerification = document.getElementById("email_verification");
+            const registerTitle = document.getElementById("register_title");
+            emailVerification.style.display = "none";
+            registerTitle.style.display = "none";
+
+            const registerResult = await createUserWithoutLogin(trainer.email, "123456");
+
+            if (registerResult) {
+                const docRef = await addDoc(collection(db, "users"), {
+                    auth_id: registerResult.localId,
+                    email: trainer.email,
+                    user_type: "trainer",
+                    user_id: trainer.id
+                });
+
+                registerTitle.style.display = "block";
+                emailVerification.style.display = "block";
+                registerTitle.innerHTML = "Registered user with id=" + docRef.id;
+
+                await sendEmailVerification(registerResult.idToken)
+            }
+        }
+
+        function handleRegisterError(errorCode) {
+            switch (errorCode) {
+                case "auth/email-already-in-use":
+                    document.getElementById("children_title").innerHTML = "Email is already in use!";
+                    break;
+            }
+        }
+
+        async function createUserWithoutLogin(email, password) {
+            const API_KEY = "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps";
+            const url = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + API_KEY;
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    clientType: "CLIENT_TYPE_WEB",
+                    returnSecureToken: false, // Prevents auto-login
+                }),
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            return data;
+        }
+
+        async function sendEmailVerification(idToken) {
+            const API_KEY = "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps";
+            const url = 'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=' + API_KEY;
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    idToken: idToken,
+                    clientType: "CLIENT_TYPE_WEB",
+                    requestType: "VERIFY_EMAIL",
+                }),
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            return data;
+        }
+
+        async function addClassActivitiesInput() {
+            const querySnapshotClassActivity = await getDocs(collection(db, "class_activity"));
+
+            const classActivitiesFormContainer = document.getElementById("class_activities_form_container");
+            for (let classActivitiesDocument of querySnapshotClassActivity.docs) {
+                const data = classActivitiesDocument.data();
+
+                classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<input type="checkbox" id=trainer_class_activity_' + classActivitiesDocument.id + ' name=trainer_class_activity_' + classActivitiesDocument.id + ' value=' + classActivitiesDocument.id + '>');
+                classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<label for=' + classActivitiesDocument.id + '>' + data.name + ' - ' + data.day + ' - ' + data.time + '</label><br>');
+            }
+        }
+    }
+</script>
+</body>
+</html>

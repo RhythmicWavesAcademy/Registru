@@ -18,18 +18,7 @@
     <button id="sign_out"> Sign out</button>
 
     <h2 id="test"><a href="add_parent.html">Add parent and children</a></h2>
-
-    <h2 id="trainer_title"> Add trainer </h2>
-    <form id="trainer_form" action="javascript:void(0);" method="post">
-        <div class="form-group">
-            <label>First Name</label>
-            <input type="text" id="trainer_first_name"></br>
-            <label>Last Name</label>
-            <input type="text" id="trainer_last_name"></br>
-
-            <input type="submit" value="Add trainer" id="submit_trainer">
-        </div>
-    </form>
+    <h2><a href="add_trainer.html">Add trainer</a></h2>
 
     <h2 id="class_activity_title"> Add class activity </h2>
     <form id="class_activity_form" action="javascript:void(0);" method="post">
@@ -242,8 +231,6 @@
                 classAttendanceElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
             }
 
-            document.getElementById("submit_trainer").addEventListener("click", addTrainer, false);
-
             //populate class activity trainer section
             var trainerElementActivities = document.getElementsByName("activity_trainer");
 
@@ -272,21 +259,6 @@
 
                 attendanceClassActivity.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + '</option>');
             }
-        }
-
-        async function addTrainer() {
-            const firstNameInput = document.querySelector("#trainer_first_name");
-            const lastNameInput = document.querySelector("#trainer_last_name");
-
-            const docRef = await addDoc(collection(db, "trainers"), {
-                first_name: firstNameInput.value,
-                last_name: lastNameInput.value,
-                created_at: serverTimestamp()
-            });
-
-            document.getElementById("trainer_title").innerHTML = "Added trainer with id=" + docRef.id
-            firstNameInput.value = "";
-            lastNameInput.value = "";
         }
 
         document.getElementById("submit_class_activity").addEventListener("click", addClassActivity, false);

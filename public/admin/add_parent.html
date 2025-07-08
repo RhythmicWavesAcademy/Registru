@@ -147,13 +147,13 @@
                 children: childrenIds,
                 first_name: firstNameInput.value,
                 last_name: lastNameInput.value,
-                email: emailInput.value,
+                email: emailInput.value.toLowerCase(),
                 created_at: serverTimestamp()
             });
 
             const result = {
                 id: docRef.id,
-                email: emailInput.value
+                email: emailInput.value.toLowerCase()
             };
 
             document.getElementById("children_title").innerHTML = "Added parent with id=" + docRef.id
@@ -192,6 +192,7 @@
                     });
 
                     registerTitle.style.display = "block";
+                    emailVerification.style.display = "block";
                     registerTitle.innerHTML = "Registered user with id=" + docRef.id;
 
                     await sendEmailVerification(registerResult.idToken)
