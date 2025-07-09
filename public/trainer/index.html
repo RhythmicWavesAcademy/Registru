@@ -7,9 +7,11 @@
     <title>Trainer dashboard</title>
 </head>
 <body>
-<h1> Welcome trainer </h1>
 
-<div id="trainer_logged_in_container">
+<div id="trainer_logged_in_container" style="display: none;">
+    <h1> Welcome trainer </h1>
+    <button id="sign_out"> Sign out</button>
+
     <h1 id="classes_today_title"> Classes today </h1>
     <form id="class_activity_form" action="javascript:void(0);" method="post">
         <div class="form-group">
@@ -98,6 +100,7 @@
         });
 
         async function onTrainerAuthenticated(email) {
+            document.getElementById("sign_out").addEventListener("click", signOutUser, false);
             const currentDay = new Date().toLocaleString('en-us', {weekday: 'long'});
 
             const foundTrainers = query(collection(db, "trainers"), where("email", "==", email));
@@ -247,6 +250,14 @@
             });
 
             document.getElementById("classes_today_title").innerHTML = "Membership paid for children id" + childrenId + " attendanceId: " + lastAttendanceByChildrenDocument.id;
+        }
+
+        async function signOutUser() {
+            await signOut(auth).then(() => {
+                window.location.href = "../index.html";
+            }).catch((error) => {
+                // An error happened.
+            });
         }
 
         function toLocalISOString(date) {
