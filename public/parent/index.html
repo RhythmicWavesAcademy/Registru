@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <title>Parent dashboard</title>
 </head>
 <body>
@@ -152,6 +153,28 @@
                 for (let classActivityDocument of querySnapshotClassActivity.docs) {
                     const classActivityData = classActivityDocument.data();
                     childrenInfoElement.insertAdjacentHTML('beforeend', '<p>' + classActivityData.name + ' ' + classActivityData.day + ' ' + classActivityData.time + '</p>');
+
+                    childrenInfoElement.insertAdjacentHTML('beforeend', '<h2> Attendance </h2>');
+
+                    const foundAttendance = query(
+                        collection(db, "attendance"),
+                        where("children_id", "==", childId),
+                        where("class_activity_id", "==", classActivityDocument.id));
+
+                    const querySnapshotAttendance = await getDocs(foundAttendance);
+
+                    for (let classAttendanceDocument of querySnapshotAttendance.docs) {
+                        const classAttendanceData = classAttendanceDocument.data();
+                        console.log(classAttendanceDocument.id);
+                        console.log(classAttendanceData);
+                        let message;
+                        if (classAttendanceData.is_present) {
+                            message = '<span class="material-icons">check</span>';
+                        } else {
+                            message = '<span class="material-icons">close</span>';
+                        }
+                        childrenInfoElement.insertAdjacentHTML('beforeend', '<p>Date:' + classAttendanceData.present_at + ' isPresent?:' + message + ' </p>');
+                    }
                 }
             }
         }
