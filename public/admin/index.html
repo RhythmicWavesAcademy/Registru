@@ -19,33 +19,7 @@
 
     <h2 id="test"><a href="add_parent.html">Add parent and children</a></h2>
     <h2><a href="add_trainer.html">Add trainer</a></h2>
-
-    <h2 id="class_activity_title"> Add class activity </h2>
-    <form id="class_activity_form" action="javascript:void(0);" method="post">
-        <div class="form-group">
-            <label>Name</label>
-            <input type="text" id="class_activity_name"><br/>
-            <label>Attendance day </label>
-            <select name="class_activity_attendance_day" id="class_activity_attendance_day">
-                <option value="Monday">Monday</option>
-                <option value="Tuesday">Tuesday</option>
-                <option value="Wednesday">Wednesday</option>
-                <option value="Thursday">Thursday</option>
-                <option value="Friday">Friday</option>
-                <option value="Saturday">Saturday</option>
-                <option value="Sunday">Sunday</option>
-            </select><br/>
-            <label>Lesson per billing cycle</label>
-            <input type="number" id="class_activity_lesson_billing_cycle" min="1" max="60"></br>
-
-            <label for="class_activity_attendance_time">Time:</label>
-            <input id="class_activity_attendance_time" type="time" name="class_activity_attendance_time" min="07:00"
-                   max="21:00"/>
-            <select name="activity_trainer" id="activity_trainer"></select></br />
-
-            <input type="submit" value="Add class activity" id="submit_class_activity">
-        </div>
-    </form>
+    <h2><a href="add_class_activity.html">Add class activity</a></h2>
 
     <h2 id="class_attendance_title"> Add class attendance </h2>
     <form id="trainer_form" action="javascript:void(0);" method="post">
@@ -231,20 +205,6 @@
                 classAttendanceElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
             }
 
-            //populate class activity trainer section
-            var trainerElementActivities = document.getElementsByName("activity_trainer");
-
-            for (let i = 0; i < trainerElementActivities.length; i++) {
-                for (let trainerDocument2 of querySnapshotTrainers.docs) {
-                    var data = trainerDocument2.data();
-
-                    var option = document.createElement("option");
-                    option.text = data.first_name + " " + data.last_name;
-                    option.value = trainerDocument2.id;
-                    trainerElementActivities[i].add(option);
-                }
-            }
-
             //populate class attendance with children and class activities
             var attendanceChildrenId = document.getElementById("children_attendance_children_id");
             for (let childrenDocument of querySnapshotChildren.docs) {
@@ -259,28 +219,6 @@
 
                 attendanceClassActivity.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + '</option>');
             }
-        }
-
-        document.getElementById("submit_class_activity").addEventListener("click", addClassActivity, false);
-
-        async function addClassActivity() {
-            const nameInput = document.querySelector("#class_activity_name");
-            const timeInput = document.querySelector('#class_activity_attendance_time');
-            const attendanceTrainers = document.querySelector("#activity_trainer");
-            const dayInput = document.querySelector("#class_activity_attendance_day");
-            const lessonPerBillingCycle = document.querySelector("#class_activity_lesson_billing_cycle");
-
-            const docRef = await addDoc(collection(db, "class_activity"), {
-                name: nameInput.value,
-                day: dayInput.value,
-                time: timeInput.value,
-                trainer_id: attendanceTrainers.value,
-                lesson_per_billing_cycle: parseInt(lessonPerBillingCycle.value),
-                created_at: serverTimestamp()
-            });
-
-            document.getElementById("class_activity_title").innerHTML = "Added class activity with id=" + docRef.id
-            nameInput.value = "";
         }
 
         function toLocalISOString(date) {

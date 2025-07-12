@@ -139,47 +139,21 @@
                 childrenElement.insertAdjacentHTML('beforeend', "age:" + data.age + "<br/>");
                 childrenElement.insertAdjacentHTML('beforeend', "gender:" + data.gender + "<br/>");
                 childrenElement.insertAdjacentHTML('beforeend', 'isPresent?: <span id=' + activityId + '_present class="material-icons">check</span> <span id=' + activityId + '_absent class="material-icons">close</span><br/>');
-
-                // const querySnapshotClassActivity = await getDoc(doc(db, 'class_activity', activityId));
-                // const querySnapshotClassActivityData = querySnapshotClassActivity.data();
-                // const lessonsPerBillingCycle = querySnapshotClassActivityData.lesson_per_billing_cycle;
-
-                // const lastAttendanceByBillingCycleForChildren = query(collection(db, "attendance"), orderBy("created_at", "desc"), limit(lessonsPerBillingCycle - 1), where("children_id", "==", childrenDocument.id));
-                // const querySnapshotLastAttendanceByBillingCycleForChildren = await getDocs(lastAttendanceByBillingCycleForChildren);
-                // const querySnapshotLastAttendanceByBillingCycleForChildrenDocs = querySnapshotLastAttendanceByBillingCycleForChildren.docs.map(doc => doc.data());
-
-                // var billingCycleEnded = false;
-                // if (querySnapshotLastAttendanceByBillingCycleForChildrenDocs.length == lessonsPerBillingCycle - 1) {
-                // 	billingCycleEnded = querySnapshotLastAttendanceByBillingCycleForChildrenDocs.every(item => item.should_pay == false);
-                // }
-
-
-                // if (billingCycleEnded) {
-                // 	childrenElement.insertAdjacentHTML( 'beforeend', 'should pay?: <span id=' + activityId + '_pay class="material-icons">check</span><br />');
-
-                // 	var classAttendanceSpanPay = document.getElementById(activityId + "_pay");
-                // 	classAttendanceSpanPay.addEventListener("click", updatePaidMembership, false);
-                // 	classAttendanceSpanPay.activityId = activityId;
-                // 	classAttendanceSpanPay.childrenId = childrenDocument.id;
-                // } else {
-                // 	childrenElement.insertAdjacentHTML( 'beforeend', 'should pay?: <span id=' + activityId + '_pay class="material-icons">close</span><br />');
-                // }
-
                 childrenElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
 
-                var classAttendanceSpanPresent = document.getElementById(activityId + "_present");
+                const classAttendanceSpanPresent = document.getElementById(activityId + "_present");
                 classAttendanceSpanPresent.addEventListener("click", addClassAttendance, false);
                 classAttendanceSpanPresent.activityId = activityId;
                 classAttendanceSpanPresent.childrenId = childrenDocument.id;
                 classAttendanceSpanPresent.isPresent = true;
                 classAttendanceSpanPresent.date = toLocalISOString(new Date());
 
-                var classAttendanceSpanPresent = document.getElementById(activityId + "_absent");
-                classAttendanceSpanPresent.addEventListener("click", addClassAttendance, false);
-                classAttendanceSpanPresent.activityId = activityId;
-                classAttendanceSpanPresent.childrenId = childrenDocument.id;
-                classAttendanceSpanPresent.isPresent = false;
-                classAttendanceSpanPresent.date = toLocalISOString(new Date());
+                const classAttendanceSpanAbsent = document.getElementById(activityId + "_absent");
+                classAttendanceSpanAbsent.addEventListener("click", addClassAttendance, false);
+                classAttendanceSpanAbsent.activityId = activityId;
+                classAttendanceSpanAbsent.childrenId = childrenDocument.id;
+                classAttendanceSpanAbsent.isPresent = false;
+                classAttendanceSpanAbsent.date = toLocalISOString(new Date());
             }
         }
 
@@ -217,7 +191,7 @@
                 billingCycleEnded = querySnapshotLastAttendanceByBillingCycleForChildrenDocs.every(item => item.should_pay == false);
             }
 
-            var childrenElement = document.getElementById("children_list");
+            const childrenElement = document.getElementById("children_list");
 
             let currentQuantityRange = document.getElementById(activityId + "_container");
             if (currentQuantityRange) currentQuantityRange.remove();
@@ -225,7 +199,7 @@
             if (billingCycleEnded) {
                 childrenElement.insertAdjacentHTML('beforeend', '<div id=' + activityId + '_container>should pay?: <span id=' + activityId + '_pay class="material-icons">check</span><br /></div>');
 
-                var classAttendanceSpanPay = document.getElementById(activityId + "_pay");
+                const classAttendanceSpanPay = document.getElementById(activityId + "_pay");
                 classAttendanceSpanPay.addEventListener("click", updatePaidMembership, false);
                 classAttendanceSpanPay.activityId = activityId;
                 classAttendanceSpanPay.childrenId = childrenId;

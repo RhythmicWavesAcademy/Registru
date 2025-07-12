@@ -165,8 +165,6 @@
 
                     for (let classAttendanceDocument of querySnapshotAttendance.docs) {
                         const classAttendanceData = classAttendanceDocument.data();
-                        console.log(classAttendanceDocument.id);
-                        console.log(classAttendanceData);
                         let message;
                         if (classAttendanceData.is_present) {
                             message = '<span class="material-icons">check</span>';

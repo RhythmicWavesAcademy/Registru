@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Add class activity</title>
+</head>
+<body>
+
+<div id="not_loggedIn_container" style="display: none;">
+    <h1> Not logged in</h1>
+    <h2> Please <a href="../index.html">log in</a></h2>
+</div>
+
+<div id="admin_logged_in_container" style="display: none;">
+    <h2 id="class_activity_title"> Add class activity </h2>
+    <form id="class_activity_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="class_activity_name"><br/>
+            <label>Attendance day </label>
+            <select name="class_activity_attendance_day" id="class_activity_attendance_day">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+            </select><br/>
+            <label>Lesson per billing cycle</label>
+            <input type="number" id="class_activity_lesson_billing_cycle" min="1" max="60"></br>
+
+            <label for="class_activity_attendance_time">Time:</label>
+            <input id="class_activity_attendance_time" type="time" name="class_activity_attendance_time" min="07:00"
+                   max="21:00"/>
+            <select name="activity_trainer" id="activity_trainer"></select></br />
+
+            <input type="submit" value="Add class activity" id="submit_class_activity">
+        </div>
+    </form>
+</div>
+
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        collection,
+        getDocs,
+        query,
+        where,
+        addDoc,
+        serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+
+    import {
+        getAuth,
+        onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    window.onload = async () => {
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
+            authDomain: "registru-d6b7b.firebaseapp.com",
+            projectId: "registru-d6b7b",
+            storageBucket: "registru-d6b7b.firebasestorage.app",
+            messagingSenderId: "914926288060",
+            appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
+            measurementId: "G-QSDZCKE9MR"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const adminLoggedInContainer = document.getElementById("admin_logged_in_container");
+        const notLoggedInContainer = document.getElementById("not_loggedIn_container");
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+
+                const foundUsers = query(collection(db, "users"), where("auth_id", "==", user.uid));
+                const querySnapshot = await getDocs(foundUsers);
+                const firstUser = querySnapshot.docs[0].data();
+
+                if (firstUser.user_type == "admin") {
+                    adminLoggedInContainer.style.display = "block";
+                    await
+                        onAdminAuthenticated();
+                } else {
+                    notLoggedInContainer.style.display = "block";
+                }
+
+            } else {
+                // User is signed out
+                notLoggedInContainer.style.display = "block";
+            }
+        });
+
+        async function onAdminAuthenticated() {
+            await populateTrainerSelection();
+        }
+
+        document.getElementById("submit_class_activity").addEventListener("click", addClassActivity, false);
+
+        async function addClassActivity() {
+            const nameInput = document.querySelector("#class_activity_name");
+            const timeInput = document.querySelector('#class_activity_attendance_time');
+            const attendanceTrainers = document.querySelector("#activity_trainer");
+            const dayInput = document.querySelector("#class_activity_attendance_day");
+            const lessonPerBillingCycle = document.querySelector("#class_activity_lesson_billing_cycle");
+
+            const docRef = await addDoc(collection(db, "class_activity"), {
+                name: nameInput.value,
+                day: dayInput.value,
+                time: timeInput.value,
+                trainer_id: attendanceTrainers.value,
+                lesson_per_billing_cycle: parseInt(lessonPerBillingCycle.value),
+                created_at: serverTimestamp()
+            });
+
+            document.getElementById("class_activity_title").innerHTML = "Added class activity with id=" + docRef.id
+            nameInput.value = "";
+        }
+
+        async function populateTrainerSelection() {
+            const trainerElementActivities = document.getElementsByName("activity_trainer");
+            const querySnapshotTrainers = await getDocs(collection(db, "trainers"));
+
+            for (let i = 0; i < trainerElementActivities.length; i++) {
+                for (let trainerDocument of querySnapshotTrainers.docs) {
+                    const data = trainerDocument.data();
+
+                    const option = document.createElement("option");
+                    option.text = data.first_name + " " + data.last_name;
+                    option.value = trainerDocument.id;
+                    trainerElementActivities[i].add(option);
+                }
+            }
+        }
+    };
+</script>
+</body>
+</html>
