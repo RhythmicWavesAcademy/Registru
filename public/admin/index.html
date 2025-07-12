@@ -21,23 +21,7 @@
     <h2><a href="add_trainer.html">Add trainer</a></h2>
     <h2><a href="add_class_activity.html">Add class activity</a></h2>
 
-    <h2 id="class_attendance_title"> Add class attendance </h2>
-    <form id="trainer_form" action="javascript:void(0);" method="post">
-        <div class="form-group">
-            <label>Children Name</label>
-            <select name="children_attendance_children_id" id="children_attendance_children_id"></select><br/>
-            <label>Class activity</label>
-            <select name="children_attendance_class_activity" id="children_attendance_class_activity"></select><br/>
-            <label for="children_attendance_present">Is present?</label>
-            <input type="radio" id="children_attendance_present" name="children_attendance_present" value="true"><br/>
-            <label for="children_attendance_datetime">Attendance date</label>
-            <input type="datetime-local" id="children_attendance_datetime" name="children_attendance_datetime"><br/>
-            <input type="radio" id="children_attendance_should_pay" name="children_attendance_should_pay"
-                   value="true"><br/>
-
-            <input type="submit" value="Add class attendance" id="submit_class_attendance">
-        </div>
-    </form>
+    <h2><a href="add_class_attendance.html"> Add class attendance</a></h2>
 
     <h2> Children </h2>
     <div id="children"></div>
@@ -204,58 +188,8 @@
 
                 classAttendanceElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
             }
-
-            //populate class attendance with children and class activities
-            var attendanceChildrenId = document.getElementById("children_attendance_children_id");
-            for (let childrenDocument of querySnapshotChildren.docs) {
-                var data = childrenDocument.data();
-
-                attendanceChildrenId.insertAdjacentHTML('beforeend', '<option value=' + childrenDocument.id + '>' + data.first_name + " " + data.last_name + '</option>');
-            }
-
-            var attendanceClassActivity = document.getElementById("children_attendance_class_activity");
-            for (let classActivityDocument of querySnapshotClassActivity.docs) {
-                var data = classActivityDocument.data();
-
-                attendanceClassActivity.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.name + '</option>');
-            }
         }
-
-        function toLocalISOString(date) {
-            const localDate = new Date(date - date.getTimezoneOffset() * 60000);
-            localDate.setSeconds(null);
-            localDate.setMilliseconds(null);
-            return localDate.toISOString().slice(0, -1);
-        }
-
-        document.getElementById('children_attendance_datetime').value = toLocalISOString(new Date());
-
-        document.getElementById("submit_class_attendance").addEventListener("click", addClassAttendance, false);
-
-        async function addClassAttendance() {
-            const childrenId = document.querySelector("#children_attendance_children_id");
-            const attendanceId = document.querySelector("#children_attendance_class_activity");
-            const isPresent = document.querySelector("#children_attendance_present");
-            const shouldPay = document.querySelector("#children_attendance_should_pay");
-            const dateTimeInput = document.querySelector("#children_attendance_datetime");
-
-            const docRef = await addDoc(collection(db, "attendance"), {
-                children_id: childrenId.value,
-                class_activity_id: attendanceId.value,
-                is_present: isPresent.checked,
-                should_pay: shouldPay.checked,
-                present_at: dateTimeInput.value,
-                created_at: serverTimestamp()
-            });
-
-            document.getElementById("class_attendance_title").innerHTML = "Added class attendance with id=" + docRef.id
-            childrenId.value = "";
-            attendanceId.value = "";
-            isPresent.checked = false;
-            shouldPay.checked = false;
-            dateTimeInput.value = toLocalISOString(new Date());
-        }
-
+        
         async function deleteClassAttendance(evt) {
             const attendanceId = evt.currentTarget.attendanceId;
             await deleteDoc(doc(db, "attendance", attendanceId));
