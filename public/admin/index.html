@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="text/javascript" src="../js/app_config.js"></script>
     <title>Admin Dashboard</title>
 </head>
 <body>
@@ -64,16 +65,6 @@
     window.onload = async () => {
         // TODO: Add SDKs for Firebase products that you want to use
         // https://firebase.google.com/docs/web/setup#available-libraries
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
-            authDomain: "registru-d6b7b.firebaseapp.com",
-            projectId: "registru-d6b7b",
-            storageBucket: "registru-d6b7b.firebasestorage.app",
-            messagingSenderId: "914926288060",
-            appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
-            measurementId: "G-QSDZCKE9MR"
-        };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -189,7 +180,7 @@
                 classAttendanceElement.insertAdjacentHTML('beforeend', "---------------------- </br>");
             }
         }
-        
+
         async function deleteClassAttendance(evt) {
             const attendanceId = evt.currentTarget.attendanceId;
             await deleteDoc(doc(db, "attendance", attendanceId));

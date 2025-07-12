@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="text/javascript" src="../js/app_config.js"></script>
     <title>Add parent</title>
 </head>
 <body>
@@ -50,20 +51,6 @@
     } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
 
     window.onload = async () => {
-        // TODO: Add SDKs for Firebase products that you want to use
-        // https://firebase.google.com/docs/web/setup#available-libraries
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps",
-            authDomain: "registru-d6b7b.firebaseapp.com",
-            projectId: "registru-d6b7b",
-            storageBucket: "registru-d6b7b.firebasestorage.app",
-            messagingSenderId: "914926288060",
-            appId: "1:914926288060:web:5a085a2369b1a7ac7164b9",
-            measurementId: "G-QSDZCKE9MR"
-        };
-
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         var parentCounter = 0;
@@ -206,55 +193,6 @@
                     document.getElementById("children_title").innerHTML = "Email is already in use!";
                     break;
             }
-        }
-
-        async function createUserWithoutLogin(email, password) {
-            const API_KEY = "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps";
-            const url = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + API_KEY;
-
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password,
-                    clientType: "CLIENT_TYPE_WEB",
-                    returnSecureToken: false, // Prevents auto-login
-                }),
-            });
-
-            const data = await response.json();
-            if (data.error) {
-                throw new Error(data.error.message);
-            }
-
-            return data;
-        }
-
-        async function sendEmailVerification(idToken) {
-            const API_KEY = "AIzaSyAyW28VvX1hcNjPS49woHkUFaj8-cXMRps";
-            const url = 'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=' + API_KEY;
-
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    idToken: idToken,
-                    clientType: "CLIENT_TYPE_WEB",
-                    requestType: "VERIFY_EMAIL",
-                }),
-            });
-
-            const data = await response.json();
-            if (data.error) {
-                throw new Error(data.error.message);
-            }
-
-            return data;
         }
 
         async function addNewChildrenInput() {
