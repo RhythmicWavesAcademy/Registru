@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="text/javascript" src="../js/app_config.js"></script>
+    <title>Update children</title>
+</head>
+<body>
+
+<div id="admin_logged_in_container" style="display: none;">
+    <h1 id="update_children_title"> Update Children </h1>
+    <form id="class_activity_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <label>Children first name</label>
+            <input type="text" id="children_first_name"><br/>
+
+            <label>Children last name</label>
+            <input type="text" id="children_last_name"></br>
+
+            <label>Children gender</label>
+            <select name="children_gender" id="children_gender">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select><br/>
+
+            <label>Children age</label>
+            <input type="number" id="children_age" min="1" max="99"><br/>
+
+            <div id="class_activities_form_container"></div>
+
+            <input type="submit" id="update" value="Update">
+        </div>
+    </form>
+</div>
+
+<div id="not_loggedIn_container" style="display: none;">
+    <h1> Not logged in</h1>
+    <h2> Please <a href="../index.html">log in</a></h2>
+</div>
+
+<script type="module">
+    // update / delete entries
+    //add indexes to firestore.indexes.json
+
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        collection,
+        getDocs,
+        query,
+        where,
+        doc,
+        serverTimestamp,
+        updateDoc,
+        documentId
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        getAuth,
+        onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    window.onload = async () => {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth();
+
+        const adminLoggedInContainer = document.getElementById("admin_logged_in_container");
+        const notLoggedInContainer = document.getElementById("not_loggedIn_container");
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+
+                const foundUsers = query(collection(db, "users"), where("auth_id", "==", user.uid));
+                const querySnapshot = await getDocs(foundUsers);
+                const firstUser = querySnapshot.docs[0].data();
+
+                if (firstUser.user_type == "admin") {
+                    adminLoggedInContainer.style.display = "block";
+                    const childId = new URLSearchParams(window.location.search).get('id');
+                    await onAdminAuthenticated(childId);
+                } else {
+                    notLoggedInContainer.style.display = "block";
+                }
+
+            } else {
+                // User is signed out
+                notLoggedInContainer.style.display = "block";
+            }
+        });
+
+        async function onAdminAuthenticated(childId) {
+            const foundChildren = query(collection(db, "children"), where(documentId(), "==", childId));
+            const querySnapshotChildren = await getDocs(foundChildren);
+            let firstChildrenDocRef = querySnapshotChildren.docs[0];
+            const firstChildren = firstChildrenDocRef.data();
+
+            const childrenActivities = firstChildren.class_activities_id;
+
+            const classActivitiesFormContainer = document.getElementById("class_activities_form_container");
+            const querySnapshotEveryClassActivity = await getDocs(collection(db, "class_activity"));
+            for (let classActivitiesDocument of querySnapshotEveryClassActivity.docs) {
+                const data = classActivitiesDocument.data();
+                var checkedText = "";
+                const result = childrenActivities.find(childrenActivity => childrenActivity === classActivitiesDocument.id);
+                if (result) {
+                    checkedText = "checked";
+                } else {
+                    checkedText = "";
+                }
+
+                classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<input type="checkbox" id="children_class_activity" name="children_class_activity" value=' + classActivitiesDocument.id + ' ' + checkedText + '>');
+                classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<label for=' + classActivitiesDocument.id + '>' + data.name + ' - ' + data.day + ' - ' + data.time + '</label><br>');
+            }
+
+            const firstNameInput = document.querySelector("#children_first_name");
+            const lastNameInput = document.querySelector("#children_last_name");
+            const genderInput = document.querySelector("#children_gender");
+            const ageInput = document.querySelector("#children_age");
+
+            firstNameInput.value = firstChildren.first_name;
+            lastNameInput.value = firstChildren.last_name;
+            genderInput.value = firstChildren.gender;
+
+            var childAge = 0;
+            if (!isNaN(firstChildren.age)) {
+                childAge = firstChildren.age;
+            }
+
+            ageInput.value = childAge;
+
+            let updateElement = document.getElementById("update");
+            updateElement.addEventListener("click", updateChildren, false);
+            updateElement.childId = childId;
+        }
+
+        async function updateChildren(evt) {
+            const firstNameInput = document.querySelector("#children_first_name");
+            const lastNameInput = document.querySelector("#children_last_name");
+            const genderInput = document.querySelector("#children_gender");
+            const ageInput = document.querySelector("#children_age");
+            const childId = evt.currentTarget.childId;
+
+            const classActivityCheckboxes = document.querySelectorAll('input[name=children_class_activity]:checked');
+            const checkedClassActivities = [];
+            for (let checkbox of classActivityCheckboxes) {
+                if (checkbox.checked) {
+                    checkedClassActivities.push(checkbox.value);
+                }
+            }
+
+            const childrenDocRef = doc(db, "children", childId);
+            await updateDoc(childrenDocRef, {
+                first_name: firstNameInput.value,
+                last_name: lastNameInput.value,
+                gender: genderInput.value,
+                age: parseInt(ageInput.value),
+                class_activities_id: checkedClassActivities,
+                modified_at: serverTimestamp()
+            });
+
+            document.getElementById("update_children_title").innerHTML = "Children updated";
+        }
+    }
+</script>
+</body>
+</html>
