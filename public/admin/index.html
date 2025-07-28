@@ -121,7 +121,7 @@
                 parentElement.insertAdjacentHTML('beforeend', parentDocument.id + "<br/>");
                 parentElement.insertAdjacentHTML('beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>");
                 parentElement.insertAdjacentHTML('beforeend', "childrenId:" + childrenDocument + "<br/>");
-
+                parentElement.insertAdjacentHTML('beforeend', "<a href='update_parent.html?id=" + parentDocument.id + "'>Update</a><br/>");
 
                 parentElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
             }
@@ -133,6 +133,8 @@
 
                 trainerElement.insertAdjacentHTML('beforeend', trainerDocument.id + "<br/>");
                 trainerElement.insertAdjacentHTML('beforeend', "name:" + data.first_name + " " + data.last_name + "<br/>");
+                trainerElement.insertAdjacentHTML('beforeend', "<a href='update_trainer.html?id=" + trainerDocument.id + "'>Update</a><br/>");
+
                 trainerElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
             }
 
@@ -150,7 +152,7 @@
                 classActivityElement.insertAdjacentHTML('beforeend', "trainerId:" + data.trainer_id + " name:" + trainerData.first_name + " " + trainerData.last_name + "<br/>");
                 classActivityElement.insertAdjacentHTML('beforeend', "day:" + data.day + "<br/>");
                 classActivityElement.insertAdjacentHTML('beforeend', "time:" + data.time + "<br/>");
-
+                classActivityElement.insertAdjacentHTML('beforeend', "<a href='update_class_activity.html?id=" + classActivityDocument.id + "'>Update</a><br/>");
 
                 classActivityElement.insertAdjacentHTML('beforeend', "---------------------- <br/>");
             }

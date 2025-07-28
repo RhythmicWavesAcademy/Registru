@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="text/javascript" src="../js/app_config.js"></script>
+    <title>Update trainer</title>
+</head>
+<body>
+
+<div id="admin_logged_in_container" style="display: none;">
+    <h1 id="update_trainer_title"> Update trainer </h1>
+    <form id="class_activity_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <label>Trainer first name</label>
+            <input type="text" id="trainer_first_name"><br/>
+
+            <label>Trainer last name</label>
+            <input type="text" id="trainer_last_name"></br>
+
+            <label>Trainer email</label>
+            <input type="text" id="trainer_email"></br>
+
+            <div id="class_activities_form_container"></div>
+
+            <input type="submit" id="update" value="Update">
+        </div>
+    </form>
+</div>
+
+<div id="not_loggedIn_container" style="display: none;">
+    <h1> Not logged in</h1>
+    <h2> Please <a href="../index.html">log in</a></h2>
+</div>
+
+<script type="module">
+    // update / delete entries
+    //add indexes to firestore.indexes.json
+
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        collection,
+        getDocs,
+        query,
+        where,
+        doc,
+        serverTimestamp,
+        updateDoc,
+        documentId
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        getAuth,
+        onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    window.onload = async () => {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth();
+
+        const adminLoggedInContainer = document.getElementById("admin_logged_in_container");
+        const notLoggedInContainer = document.getElementById("not_loggedIn_container");
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+
+                const foundUsers = query(collection(db, "users"), where("auth_id", "==", user.uid));
+                const querySnapshot = await getDocs(foundUsers);
+                const firstUser = querySnapshot.docs[0].data();
+
+                if (firstUser.user_type == "admin") {
+                    adminLoggedInContainer.style.display = "block";
+                    const trainerId = new URLSearchParams(window.location.search).get('id');
+                    await onAdminAuthenticated(trainerId);
+                } else {
+                    notLoggedInContainer.style.display = "block";
+                }
+
+            } else {
+                // User is signed out
+                notLoggedInContainer.style.display = "block";
+            }
+        });
+
+        async function onAdminAuthenticated(trainerId) {
+            const foundChildren = query(collection(db, "trainers"), where(documentId(), "==", trainerId));
+            const querySnapshotTrainer = await getDocs(foundChildren);
+            let firstTrainerDocRef = querySnapshotTrainer.docs[0];
+            const firstTrainer = firstTrainerDocRef.data();
+
+            const childrenActivities = firstTrainer.class_activities_id;
+
+            const classActivitiesFormContainer = document.getElementById("class_activities_form_container");
+            const querySnapshotEveryClassActivity = await getDocs(collection(db, "class_activity"));
+            for (let classActivitiesDocument of querySnapshotEveryClassActivity.docs) {
+                const data = classActivitiesDocument.data();
+                var checkedText = "";
+                const result = childrenActivities.find(childrenActivity => childrenActivity === classActivitiesDocument.id);
+                if (result) {
+                    checkedText = "checked";
+                } else {
+                    checkedText = "";
+                }
+
+                classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<input type="checkbox" id="children_class_activity" name="children_class_activity" value=' + classActivitiesDocument.id + ' ' + checkedText + '>');
+                classActivitiesFormContainer.insertAdjacentHTML('beforeend', '<label for=' + classActivitiesDocument.id + '>' + data.name + ' - ' + data.day + ' - ' + data.time + '</label><br>');
+            }
+
+            const firstNameInput = document.querySelector("#trainer_first_name");
+            const lastNameInput = document.querySelector("#trainer_last_name");
+            const emailInput = document.querySelector("#trainer_email");
+
+            firstNameInput.value = firstTrainer.first_name;
+            lastNameInput.value = firstTrainer.last_name;
+            emailInput.value = firstTrainer.email;
+
+            let updateElement = document.getElementById("update");
+            updateElement.addEventListener("click", updateTrainer, false);
+            updateElement.trainerId = trainerId;
+        }
+
+        async function updateTrainer(evt) {
+            const firstNameInput = document.querySelector("#trainer_first_name");
+            const lastNameInput = document.querySelector("#trainer_last_name");
+            const emailInput = document.querySelector("#trainer_email");
+            const trainerId = evt.currentTarget.trainerId;
+
+            const classActivityCheckboxes = document.querySelectorAll('input[name=children_class_activity]:checked');
+            const checkedClassActivities = [];
+            for (let checkbox of classActivityCheckboxes) {
+                if (checkbox.checked) {
+                    checkedClassActivities.push(checkbox.value);
+                }
+            }
+
+            const trainerDocRef = doc(db, "trainers", trainerId);
+            await updateDoc(trainerDocRef, {
+                first_name: firstNameInput.value,
+                last_name: lastNameInput.value,
+                email: emailInput.value,
+                class_activities_id: checkedClassActivities,
+                modified_at: serverTimestamp()
+            });
+
+            document.getElementById("update_trainer_title").innerHTML = "Trainer updated";
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="text/javascript" src="../js/app_config.js"></script>
+    <title>Update class activity</title>
+</head>
+<body>
+
+<div id="not_loggedIn_container" style="display: none;">
+    <h1> Not logged in</h1>
+    <h2> Please <a href="../index.html">log in</a></h2>
+</div>
+
+<div id="admin_logged_in_container" style="display: none;">
+    <h2 id="update_class_activity_title"> Add class activity </h2>
+    <form id="class_activity_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="class_activity_name"><br/>
+            <label>Attendance day </label>
+            <select name="class_activity_attendance_day" id="class_activity_attendance_day">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+            </select><br/>
+            <label>Lesson per billing cycle</label>
+            <input type="number" id="class_activity_lesson_billing_cycle" min="1" max="60"></br>
+
+            <label for="class_activity_attendance_time">Time:</label>
+            <input id="class_activity_attendance_time" type="time" name="class_activity_attendance_time" min="07:00"
+                   max="21:00"/>
+
+            <select name="activity_trainer" id="activity_trainer"></select></br />
+
+            <input type="submit" id="update" value="Update">
+        </div>
+    </form>
+</div>
+
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        collection,
+        getDocs,
+        query,
+        where,
+        serverTimestamp,
+        updateDoc,
+        documentId,
+        doc
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+
+    import {
+        getAuth,
+        onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    window.onload = async () => {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const adminLoggedInContainer = document.getElementById("admin_logged_in_container");
+        const notLoggedInContainer = document.getElementById("not_loggedIn_container");
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+
+                const foundUsers = query(collection(db, "users"), where("auth_id", "==", user.uid));
+                const querySnapshot = await getDocs(foundUsers);
+                const firstUser = querySnapshot.docs[0].data();
+
+                if (firstUser.user_type == "admin") {
+                    adminLoggedInContainer.style.display = "block";
+                    const classActivityId = new URLSearchParams(window.location.search).get('id');
+                    await onAdminAuthenticated(classActivityId);
+                } else {
+                    notLoggedInContainer.style.display = "block";
+                }
+
+            } else {
+                // User is signed out
+                notLoggedInContainer.style.display = "block";
+            }
+        });
+
+        async function onAdminAuthenticated(classActivityId) {
+            const foundClassActivity = query(collection(db, "class_activity"), where(documentId(), "==", classActivityId));
+            const querySnapshotClassActivity = await getDocs(foundClassActivity);
+            let firstClassActivityDocRef = querySnapshotClassActivity.docs[0];
+            const firstClassActivity = firstClassActivityDocRef.data();
+
+            const classActivityName = document.querySelector("#class_activity_name");
+            const attendanceDayInput = document.querySelector("#class_activity_attendance_day");
+            const lessonPerBillingCycleInput = document.querySelector("#class_activity_lesson_billing_cycle");
+            const attendanceTimeInput = document.querySelector("#class_activity_attendance_time");
+
+            classActivityName.value = firstClassActivity.name;
+            attendanceDayInput.value = firstClassActivity.day;
+            lessonPerBillingCycleInput.value = firstClassActivity.lesson_per_billing_cycle;
+            attendanceTimeInput.value = firstClassActivity.time;
+
+            await populateTrainerSelection(firstClassActivity.trainer_id);
+
+            let updateElement = document.getElementById("update");
+            updateElement.addEventListener("click", updateClassActivity, false);
+            updateElement.classActivityId = classActivityId;
+        }
+
+        async function updateClassActivity(evt) {
+            const classActivityName = document.querySelector("#class_activity_name");
+            const attendanceDayInput = document.querySelector("#class_activity_attendance_day");
+            const lessonPerBillingCycleInput = document.querySelector("#class_activity_lesson_billing_cycle");
+            const attendanceTimeInput = document.querySelector("#class_activity_attendance_time");
+            const trainerInput = document.querySelector("#activity_trainer");
+
+            const classActivityId = evt.currentTarget.classActivityId;
+
+            const classActivityDocRef = doc(db, "class_activity", classActivityId);
+            await updateDoc(classActivityDocRef, {
+                name: classActivityName.value,
+                day: attendanceDayInput.value,
+                lesson_per_billing_cycle: parseInt(lessonPerBillingCycleInput.value),
+                time: attendanceTimeInput.value,
+                trainer_id: trainerInput.value,
+                modified_at: serverTimestamp()
+            });
+
+            document.getElementById("update_class_activity_title").innerHTML = "Class activity updated";
+        }
+
+        async function populateTrainerSelection(preselectedTrainerId) {
+            const trainerElementActivities = document.getElementById("activity_trainer");
+            const querySnapshotTrainers = await getDocs(collection(db, "trainers"));
+
+            for (let classActivityDocument of querySnapshotTrainers.docs) {
+                const data = classActivityDocument.data();
+
+                trainerElementActivities.insertAdjacentHTML('beforeend', '<option value=' + classActivityDocument.id + '>' + data.first_name + " " + data.last_name + '</option>');
+            }
+
+            trainerElementActivities.value = preselectedTrainerId;
+        }
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="text/javascript" src="../js/app_config.js"></script>
+    <title>Update parent</title>
+</head>
+<body>
+
+<div id="admin_logged_in_container" style="display: none;">
+    <h1 id="update_parent_title"> Update parent </h1>
+    <form id="class_activity_form" action="javascript:void(0);" method="post">
+        <div class="form-group">
+            <label>Parent first name</label>
+            <input type="text" id="parent_first_name"><br/>
+
+            <label>Parent last name</label>
+            <input type="text" id="parent_last_name"></br>
+
+            <label>Parent email</label>
+            <input type="text" id="parent_email"></br>
+
+            <input type="submit" id="update" value="Update">
+        </div>
+    </form>
+</div>
+
+<div id="not_loggedIn_container" style="display: none;">
+    <h1> Not logged in</h1>
+    <h2> Please <a href="../index.html">log in</a></h2>
+</div>
+
+<script type="module">
+    // update / delete entries
+    //add indexes to firestore.indexes.json
+
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import {getFirestore} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        collection,
+        getDocs,
+        query,
+        where,
+        doc,
+        serverTimestamp,
+        updateDoc,
+        documentId
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+    import {
+        getAuth,
+        onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+    window.onload = async () => {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth();
+
+        const adminLoggedInContainer = document.getElementById("admin_logged_in_container");
+        const notLoggedInContainer = document.getElementById("not_loggedIn_container");
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+
+                const foundUsers = query(collection(db, "users"), where("auth_id", "==", user.uid));
+                const querySnapshot = await getDocs(foundUsers);
+                const firstUser = querySnapshot.docs[0].data();
+
+                if (firstUser.user_type == "admin") {
+                    adminLoggedInContainer.style.display = "block";
+                    const parentId = new URLSearchParams(window.location.search).get('id');
+                    await onAdminAuthenticated(parentId);
+                } else {
+                    notLoggedInContainer.style.display = "block";
+                }
+
+            } else {
+                // User is signed out
+                notLoggedInContainer.style.display = "block";
+            }
+        });
+
+        async function onAdminAuthenticated(parentId) {
+            const foundParent = query(collection(db, "parents"), where(documentId(), "==", parentId));
+            const querySnapshotParent = await getDocs(foundParent);
+            let firstChildrenDocRef = querySnapshotParent.docs[0];
+            const firstParent = firstChildrenDocRef.data();
+
+            const firstNameInput = document.querySelector("#parent_first_name");
+            const lastNameInput = document.querySelector("#parent_last_name");
+            const emailInput = document.querySelector("#parent_email");
+
+            firstNameInput.value = firstParent.first_name;
+            lastNameInput.value = firstParent.last_name;
+            emailInput.value = firstParent.email;
+
+            let updateElement = document.getElementById("update");
+            updateElement.addEventListener("click", updateParent, false);
+            updateElement.parentId = parentId;
+        }
+
+        async function updateParent(evt) {
+            const firstNameInput = document.querySelector("#children_first_name");
+            const lastNameInput = document.querySelector("#children_last_name");
+            const emailInput = document.querySelector("#parent_email");
+            const parentId = evt.currentTarget.parentId;
+
+            const parentDocRef = doc(db, "parents", parentId);
+            await updateDoc(parentDocRef, {
+                first_name: firstNameInput.value,
+                last_name: lastNameInput.value,
+                email: emailInput.value,
+                //todo -- add children
+                modified_at: serverTimestamp()
+            });
+
+            document.getElementById("update_parent_title").innerHTML = "Parent updated";
+        }
+    }
+</script>
+</body>
+</html>
